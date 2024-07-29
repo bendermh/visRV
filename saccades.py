@@ -9,7 +9,7 @@ import pygame as pg
 import random
 
 global targetSize
-def saccades(targetSize= "M",x_vel=0,y_vel=1920,timeChange=3,totalTime=120,monitor=0):
+def saccades(targetSize= "M",x_vel=0,y_vel=1920,timeChange=1.0,totalTime=120,monitor=0):
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
@@ -101,7 +101,7 @@ def main(targetSize,x_vel,y_vel,timeChange,totalTime,monitor):
     going = True
     clock = pg.time.Clock()
     TEXTCHANGE_EVENT = pg.USEREVENT + 1
-    pg.time.set_timer(TEXTCHANGE_EVENT,(timeChange*1000))
+    pg.time.set_timer(TEXTCHANGE_EVENT,(round(timeChange*10)*100))
     pg.time.set_timer(pg.QUIT,(totalTime*1000),1)
     while going:
         clock.tick(fps)

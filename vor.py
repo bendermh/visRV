@@ -11,25 +11,15 @@ from mbientlab.metawear.cbindings import *
 from mbientlab.warble import * 
 from scipy.spatial.transform import Rotation
 import time
+import random
 
-def vor(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = True, vRange = 10, hRange = 20, totalTime=120,monitor=0):
+def vor(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = True, vRange = 0, hRange = 20, timeChange=1, totalTime=120,monitor=0):
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
         print("Monitor is out of range, autoreset to 0")
-        
-    match targetSize:
-               
-        case "S":
-            ts = 120
-        case "M":
-            ts = 160
-        case "L":
-            ts  = 240
-        case _:
-            ts = 240
     
-    main(targetSize= ts,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange, totalTime=totalTime,monitor=monitor)
+    main(targetSize= targetSize,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange,timeChange = timeChange, totalTime=totalTime,monitor=monitor)
     
 class target():
     def __init__(self,targetSize,mac,vorTrain, vRange, hRange):
@@ -47,14 +37,39 @@ class target():
         self.biasV = 0
         self.samplingInterval = 0.01 # minimum time in secs to read IMU data 0.01 are 65Hz aprox
         self.timeIMUSetup = 2.1 # delay in seconds to stream data to avoid IMU setup empty samples
-        self.screenPositionH = 0
-        self.screenPositionV = 0
+        self.screenPositionH = self.screen.get_width()//2
+        self.screenPositionV = self.screen.get_height()//2
         self.headRangeH = hRange #half head range movement
         self.headRangeV = vRange
         self.screenMaxH = self.screen.get_width()
         self.screenMaxV = self.screen.get_height()
         self.timeConnect = time.time() 
         self.timeLast = time.time()
+        self.center = (self.screen.get_width()//2,self.screen.get_height()//2)
+        self.x = self.center[0]
+        self.y = self.center[1]
+        self.targetList = ["A","B","E","G","H","J","K","M","P","Q","R","S","T","U","X","Z"]
+        self.currentText = random.choice(self.targetList)
+        self.biasNotSet = True
+        
+        match targetSize:
+                
+            case "S":
+                self.typeSize = 32
+                self.radius = 30
+                self.border = 5
+            case "M":
+                self.typeSize = 62
+                self.radius = 50
+                self.border = 5 
+            case "L":
+                self.typeSize = 98
+                self.radius = 80
+                self.border  = 5
+            case _:
+                self.typeSize = 62
+                self.radius = 50
+                self.border = 5
         
         try:
             self.imuDevice.connect()
@@ -69,8 +84,27 @@ class target():
         
                 
     
-    def draw(self):
-        pass
+    def drawTarget(self):
+        self.center = (self.x,self.y)
+        self.circle = pg.draw.circle(self.screen, (255,255,255), (self.center), self.radius,width = self.border)
+        font = pg.font.SysFont(None, self.typeSize,bold = True)
+        self.label = font.render(self.currentText, True, (255,255,255))
+        labelPos = self.label.get_rect()
+        labelPos.center = self.center
+        self.screen.blit(self.label, labelPos)
+        
+    def changeText(self):
+        self.currentText = random.choice(self.targetList)
+    
+    def move(self):
+        self.x = self.screenPositionH
+        self.y = self.screenPositionV
+        
+    def setBias(self):
+        if self.biasNotSet:
+            self.biasH = 90-self.headPositionH
+            self.biasV = 90-self.headPositionV
+            self.biasNotSet = False
     
     def configureIMU(self):
         print("Setting up IMU...")
@@ -121,8 +155,10 @@ class target():
             if self.headPositionV > 90+self.headRangeV:
                 self.headPositionV = 90+self.headRangeV
             
-            self.screenPositionH = self.angleToScreen(self.headPositionH, (90 - self.headRangeH), (90 + self.headRangeH), 0, self.screenMaxH, self.reverse)
-            self.screenPositionV = self.angleToScreen(self.headPositionV, (90 - self.headRangeV), (90 + self.headRangeV), 0, self.screenMaxV, not self.reverse)
+            if self.headRangeH > 0:
+                self.screenPositionH = self.angleToScreen(self.headPositionH, (90 - self.headRangeH), (90 + self.headRangeH), 0, self.screenMaxH, self.reverse)
+            if self.headRangeV > 0:
+                self.screenPositionV = self.angleToScreen(self.headPositionV, (90 - self.headRangeV), (90 + self.headRangeV), 0, self.screenMaxV, not self.reverse)
     
     def angleToScreen(self,angle,angleMin,angleMax,screenMin,screenMax,inverse = True):
         if inverse:
@@ -147,7 +183,7 @@ class target():
                     print("No IMU connection to close")    
 
 
-def main(targetSize,mac,vorTrain,vRange,hRange,totalTime,monitor):
+def main(targetSize,mac,vorTrain,vRange,hRange,timeChange,totalTime,monitor):
     pg.init()
     screen = pg.display.set_mode(size=(1920,1080), flags= pg.FULLSCREEN|pg.NOFRAME|pg.DOUBLEBUF, display= monitor, vsync= 1)
     screen.fill(color=(0,0,0))
@@ -163,12 +199,15 @@ def main(targetSize,mac,vorTrain,vRange,hRange,totalTime,monitor):
     
     #prepare objects
     vorGame = target(targetSize,mac,vorTrain,vRange,hRange)
+    
 
     
     #prepare loop and timers-event
     going = True
     clock = pg.time.Clock()
     pg.time.set_timer(pg.QUIT,(totalTime*1000),1)
+    TEXTCHANGE_EVENT = pg.USEREVENT + 1
+    pg.time.set_timer(TEXTCHANGE_EVENT,(timeChange*1000))
 
     while going:
         clock.tick(fps)
@@ -180,8 +219,17 @@ def main(targetSize,mac,vorTrain,vRange,hRange,totalTime,monitor):
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     going = False
+                if event.key == pg.K_SPACE:
+                    vorGame.setBias()
+            if event.type == TEXTCHANGE_EVENT:
+                vorGame.changeText()
+        #screen.blit(background, (0, 0))
+        vorGame.move()
+        vorGame.drawTarget()
+        pg.display.flip()
         screen.blit(background, (0, 0))
-        vorGame.draw()
+        
+        
     pg.quit()
     vorGame.safeIMUDisconnect()
     print("Excercise finished. Bye !")
