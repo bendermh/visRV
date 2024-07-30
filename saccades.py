@@ -13,7 +13,7 @@ def saccades(targetSize= "M",x_vel=0,y_vel=1920,timeChange=1.0,totalTime=120,mon
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
-        print("Monitor is out of range, autoreset to 0")
+        print("Monitor is out of range, autoreset to 0. Detected monitors: " + str(pg.display.get_num_displays()))
     
     main(targetSize= targetSize, x_vel=x_vel,y_vel=y_vel,timeChange=timeChange,totalTime=totalTime,monitor=monitor)
     
@@ -60,6 +60,8 @@ class target():
     
     def changeTarget(self,dis_x,dis_y):
         self.currentText = random.choice(self.targetList)
+        print("Target: " + self.currentText)
+        
         if dis_x > self.screen.get_width():
             dis_x = self.screen.get_width()
             

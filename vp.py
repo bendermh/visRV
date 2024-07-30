@@ -13,13 +13,13 @@ from scipy.spatial.transform import Rotation
 import time
 import random
 
-def vor(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = True, vRange = True, hRange = True, timeChange=1, totalTime=120,monitor=0):
+def vp(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = False, vRange = 0, hRange = 10, timeStill = 1.0, totalTime=120,monitor=0):
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
         print("Monitor is out of range, autoreset to 0. Detected monitors: " + str(pg.display.get_num_displays()))
     
-    main(targetSize= targetSize,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange,timeChange = timeChange, totalTime=totalTime,monitor=monitor)
+    main(targetSize= targetSize,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange, timeStill = timeStill, totalTime=totalTime,monitor=monitor)
     
 class target():
     def __init__(self,targetSize,mac,vorTrain, vRange, hRange):
@@ -39,10 +39,8 @@ class target():
         self.timeIMUSetup = 2.1 # delay in seconds to stream data to avoid IMU setup empty samples
         self.screenPositionH = self.screen.get_width()//2
         self.screenPositionV = self.screen.get_height()//2
-        self.headRangeH = 45 #half head range movement
-        self.headRangeV = 30
-        self.headRangeHEnable = hRange
-        self.headRangeVEnable = vRange
+        self.headRangeH = hRange
+        self.headRangeV = vRange
         self.screenMaxH = self.screen.get_width()
         self.screenMaxV = self.screen.get_height()
         self.timeConnect = time.time() 
@@ -84,7 +82,21 @@ class target():
             print("IMU connection error")
         
                 
-    
+    def checkHead(self,background,timeStill):
+        if self.headRangeH > 0:
+            targetH = 90 + self.headRangeH
+        else:
+            targetH = 90 - abs(self.headRangeH)
+            
+        colisionH = self.headPositionH-targetH
+        if not targetH == 90:
+            if colisionH == 0:
+                print("Colision")
+        print(colisionH)
+        
+        
+        
+        
     def drawTarget(self):
         self.center = (self.x,self.y)
         self.circle = pg.draw.circle(self.screen, (255,255,255), (self.center), self.radius,width = self.border)
@@ -93,14 +105,9 @@ class target():
         labelPos = self.label.get_rect()
         labelPos.center = self.center
         self.screen.blit(self.label, labelPos)
-        
-    def changeText(self):
         self.currentText = random.choice(self.targetList)
         print("Target: " + self.currentText)
-    
-    def move(self):
-        self.x = self.screenPositionH
-        self.y = self.screenPositionV
+        
         
     def setBias(self):
         self.biasH += 90-self.headPositionH
@@ -143,28 +150,6 @@ class target():
             self.headPositionH += self.biasH
             self.headPositionV += self.biasV
             
-            if self.headPositionH < 90-self.headRangeH:
-                self.headPositionH = 90-self.headRangeH
-            
-            if self.headPositionH > 90+self.headRangeH:
-                self.headPositionH = 90+self.headRangeH
-                
-            if self.headPositionV < 90-self.headRangeV:
-                self.headPositionV = 90-self.headRangeV
-            
-            if self.headPositionV > 90+self.headRangeV:
-                self.headPositionV = 90+self.headRangeV
-            
-            if self.headRangeHEnable:
-                self.screenPositionH = self.angleToScreen(self.headPositionH, (90 - self.headRangeH), (90 + self.headRangeH), 0, self.screenMaxH, self.reverse)
-            if self.headRangeVEnable:
-                self.screenPositionV = self.angleToScreen(self.headPositionV, (90 - self.headRangeV), (90 + self.headRangeV), 0, self.screenMaxV, not self.reverse)
-    
-    def angleToScreen(self,angle,angleMin,angleMax,screenMin,screenMax,inverse = True):
-        if inverse:
-            return round(screenMax-(screenMin+(float(angle-angleMin)/float(angleMax-angleMin)*(screenMax-screenMin))))
-        else:
-            return round(screenMin+(float(angle-angleMin)/float(angleMax-angleMin)*(screenMax-screenMin)))
     
     def safeIMUDisconnect(self):    
         if self.isConected:
@@ -183,7 +168,7 @@ class target():
                     print("No IMU connection to close")    
 
 
-def main(targetSize,mac,vorTrain,vRange,hRange,timeChange,totalTime,monitor):
+def main(targetSize,mac,vorTrain,vRange,hRange, timeStill, totalTime,monitor):
     pg.init()
     screen = pg.display.set_mode(size=(1920,1080), flags= pg.FULLSCREEN|pg.NOFRAME|pg.DOUBLEBUF, display= monitor, vsync= 1)
     screen.fill(color=(0,0,0))
@@ -198,7 +183,7 @@ def main(targetSize,mac,vorTrain,vRange,hRange,timeChange,totalTime,monitor):
     #clock = pg.time.Clock()
     
     #prepare objects
-    vorGame = target(targetSize,mac,vorTrain,vRange,hRange)
+    vpGame = target(targetSize,mac,vorTrain,vRange,hRange)
     
 
     
@@ -206,8 +191,6 @@ def main(targetSize,mac,vorTrain,vRange,hRange,timeChange,totalTime,monitor):
     going = True
     clock = pg.time.Clock()
     pg.time.set_timer(pg.QUIT,(totalTime*1000),1)
-    TEXTCHANGE_EVENT = pg.USEREVENT + 1
-    pg.time.set_timer(TEXTCHANGE_EVENT,(round(timeChange*10)*100))
 
     while going:
         clock.tick(fps)
@@ -220,21 +203,14 @@ def main(targetSize,mac,vorTrain,vRange,hRange,timeChange,totalTime,monitor):
                 if event.key == pg.K_ESCAPE:
                     going = False
                 if event.key == pg.K_SPACE:
-                    vorGame.setBias()
-            if event.type == TEXTCHANGE_EVENT:
-                vorGame.changeText()
-        #screen.blit(background, (0, 0))
-        vorGame.move()
-        vorGame.drawTarget()
-        pg.display.flip()
-        screen.blit(background, (0, 0))
-        
+                    vpGame.setBias()
+        vpGame.checkHead(background,timeStill)
         
     pg.quit()
-    vorGame.safeIMUDisconnect()
+    vpGame.safeIMUDisconnect()
     print("Excercise finished. Bye !")
 
 
 #for testing purposes
 if __name__ == "__main__":
-    vor()
+    vp()

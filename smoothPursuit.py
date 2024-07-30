@@ -13,7 +13,7 @@ def smoothPursuit(targetSize= "S",x_vel=8,y_vel=2,timeChange=1,totalTime=120,mon
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
-        print("Monitor is out of range, autoreset to 0")
+        print("Monitor is out of range, autoreset to 0. Detected monitors: " + str(pg.display.get_num_displays()))
     
     main(targetSize= targetSize, x_vel=x_vel,y_vel=y_vel,timeChange=timeChange,totalTime=totalTime,monitor=monitor)
     
@@ -69,6 +69,7 @@ class target():
     
     def changeText(self):
         self.currentText = random.choice(self.targetList)
+        print("Target: " + self.currentText)
 
 
 
@@ -93,7 +94,7 @@ def main(targetSize= "S",x_vel=8,y_vel=2,timeChange=1,totalTime=120,monitor=0):
     going = True
     clock = pg.time.Clock()
     TEXTCHANGE_EVENT = pg.USEREVENT + 1
-    pg.time.set_timer(TEXTCHANGE_EVENT,(timeChange*1000))
+    pg.time.set_timer(TEXTCHANGE_EVENT,(round(timeChange*10)*100))
     pg.time.set_timer(pg.QUIT,(totalTime*1000),1)
     while going:
         clock.tick(fps)

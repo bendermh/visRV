@@ -12,7 +12,7 @@ def okn(targetSize= "L",vel=20,direction="D",totalTime=120,monitor=0):
     #objetcs
     if monitor > pg.display.get_num_displays():
         monitor = 0
-        print("Monitor is out of range, autoreset to 0")
+        print("Monitor is out of range, autoreset to 0. Detected monitors: " + str(pg.display.get_num_displays()))
         
     match targetSize:
                

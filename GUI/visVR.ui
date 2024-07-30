@@ -5,7 +5,7 @@
     <customwidgets />
   </project>
   <object class="tk.Toplevel" id="mainWindow" named="True">
-    <property name="geometry">1280x720</property>
+    <property name="geometry">1280x768</property>
     <property name="resizable">none</property>
     <property name="title" translatable="yes">visVR: An instrumented visuo-vestibular and VOR exercises assistant</property>
     <child>
@@ -283,8 +283,8 @@ Rehabilitation</property>
                 </child>
                 <child>
                   <object class="ttk.Combobox" id="combobox5">
-                    <property name="textvariable">int:targetChangeSP</property>
-                    <property name="values">5 4 3 2 1 0.5</property>
+                    <property name="textvariable">double:targetChangeSP</property>
+                    <property name="values">2.5 2 1.5 1 0.5</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -352,7 +352,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label6">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Horizontal speed</property>
+                    <property name="text" translatable="yes">Horizontal Speed</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -391,7 +391,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label7">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Vertical speed</property>
+                    <property name="text" translatable="yes">Vertical Speed</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -591,7 +591,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label13">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Horizontal distance</property>
+                    <property name="text" translatable="yes">Horizontal Distance</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -630,7 +630,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label14">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Vertical distance</property>
+                    <property name="text" translatable="yes">Vertical Distance</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -762,7 +762,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox9">
                     <property name="textvariable">int:barSpeedOK</property>
-                    <property name="values">2 4 8 16 24 32 44</property>
+                    <property name="values">8 16 24 32 40</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -879,7 +879,6 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox12">
                     <property name="state">disabled</property>
-                    <property name="textvariable">int:verticalSpeedSM</property>
                     <property name="values">0 400 800 1080</property>
                     <layout manager="pack">
                       <property name="side">top</property>
@@ -1001,8 +1000,8 @@ Rehabilitation</property>
                 </child>
                 <child>
                   <object class="ttk.Combobox" id="combobox13">
-                    <property name="textvariable">int:targetChangeVOR</property>
-                    <property name="values">2 4 8 16 24 32 44</property>
+                    <property name="textvariable">double:targetChangeVOR</property>
+                    <property name="values">2.5 2 1.5 1 0.5</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1070,7 +1069,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label26">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Horizontal range</property>
+                    <property name="text" translatable="yes">Horizontal VOR</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -1080,7 +1079,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox15">
                     <property name="textvariable">int:horizontalRangeVOR</property>
-                    <property name="values">0 36 34 32 30 28 24</property>
+                    <property name="values">0 1</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1109,7 +1108,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label27">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Vertical range</property>
+                    <property name="text" translatable="yes">Vertical VOR</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -1119,7 +1118,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox16">
                     <property name="textvariable">int:verticalRangeVOR</property>
-                    <property name="values">0 20 18 16 14</property>
+                    <property name="values">0 1</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1148,12 +1147,266 @@ Rehabilitation</property>
               </object>
             </child>
             <child>
-              <object class="ttk.Label" id="label34">
+              <object class="ttk.Label" id="label35">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Space will reset position</property>
+                <property name="text" translatable="yes">Press space reset IMU
+during exercise</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
+                  <property name="ipady">2</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Frame" id="frame13">
+            <property name="height">200</property>
+            <property name="width">200</property>
+            <layout manager="pack">
+              <property name="fill">y</property>
+              <property name="padx">5</property>
+              <property name="side">left</property>
+            </layout>
+            <child>
+              <object class="ttk.Separator" id="separator31">
+                <property name="orient">vertical</property>
+                <layout manager="pack">
+                  <property name="fill">y</property>
+                  <property name="side">right</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Label" id="label36">
+                <property name="font">{courier new} 14 {bold underline}</property>
+                <property name="text" translatable="yes">VOR suppression</property>
+                <layout manager="pack">
+                  <property name="padx">5</property>
+                  <property name="pady">5</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame41">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label37">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Target Size</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.OptionMenu" id="optionmenu6">
+                    <property name="value">Large</property>
+                    <property name="values">Small,Medium,Large</property>
+                    <property name="variable">string:targetSizeVORS</property>
+                    <layout manager="pack">
+                      <property name="ipadx">18</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator32">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame42">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label38">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Target Change
+(secs)</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox21">
+                    <property name="textvariable">double:targetChangeVORS</property>
+                    <property name="values">2.5 2 1.5 1 0.5</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator33">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame43">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label39">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Duration (secs)</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox22">
+                    <property name="textvariable">int:timeDurationVORS</property>
+                    <property name="values">30 60 120 180 240</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator34">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame44">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label40">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Horizontal VOR</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox23">
+                    <property name="textvariable">int:horizontalRangeVORS</property>
+                    <property name="values">0 1</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator35">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame45">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label41">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Vertical VOR</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox24">
+                    <property name="textvariable">int:verticalRangeVORS</property>
+                    <property name="values">0 1</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator36">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Button" id="vorsStartButton" named="True">
+                <property name="command" type="command" cbtype="simple">startVORS</property>
+                <property name="text" translatable="yes">Start</property>
+                <layout manager="pack">
+                  <property name="pady">10</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Label" id="label42">
+                <property name="font">{Courier New} 10 {}</property>
+                <property name="foreground">#0000a0</property>
+                <property name="text" translatable="yes">Press space reset IMU
+during exercise</property>
+                <layout manager="pack">
+                  <property name="ipadx">2</property>
+                  <property name="ipady">2</property>
                   <property name="side">top</property>
                 </layout>
               </object>
@@ -1211,7 +1464,7 @@ Rehabilitation</property>
                   <object class="ttk.OptionMenu" id="optionmenu5">
                     <property name="value">Large</property>
                     <property name="values">Small,Medium,Large</property>
-                    <property name="variable">string:targetSizeVOR</property>
+                    <property name="variable">string:targetSizeVP</property>
                     <layout manager="pack">
                       <property name="ipadx">18</property>
                       <property name="side">top</property>
@@ -1220,6 +1473,85 @@ Rehabilitation</property>
                 </child>
                 <child>
                   <object class="ttk.Separator" id="separator26">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame40">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label33">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Target Duration
+(secs)</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox20">
+                    <property name="textvariable">double:targetChangeVP</property>
+                    <property name="values">1.5 1.25 1 0.75 0.5 0.25</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator30">
+                    <property name="orient">horizontal</property>
+                    <layout manager="pack">
+                      <property name="ipadx">75</property>
+                      <property name="pady">15</property>
+                      <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="frame39">
+                <property name="height">200</property>
+                <property name="width">200</property>
+                <layout manager="pack">
+                  <property name="fill">x</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="ttk.Label" id="label32">
+                    <property name="font">{courier new} 12 {}</property>
+                    <property name="text" translatable="yes">Duration (secs)</property>
+                    <layout manager="pack">
+                      <property name="pady">5</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Combobox" id="combobox19">
+                    <property name="textvariable">int:timeDurationVP</property>
+                    <property name="values">30 60 120 180 240</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Separator" id="separator29">
                     <property name="orient">horizontal</property>
                     <layout manager="pack">
                       <property name="ipadx">75</property>
@@ -1241,8 +1573,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label30">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Target Change
-(secs)</property>
+                    <property name="text" translatable="yes">Horizontal Range</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -1251,8 +1582,8 @@ Rehabilitation</property>
                 </child>
                 <child>
                   <object class="ttk.Combobox" id="combobox17">
-                    <property name="textvariable">int:targetChangeVOR</property>
-                    <property name="values">2 4 8 16 24 32 44</property>
+                    <property name="textvariable">int:horizontalRangeVP</property>
+                    <property name="values">0 5 10 15 -5 -10 -15 </property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1281,7 +1612,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label31">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Duration (secs)</property>
+                    <property name="text" translatable="yes">Vertical Range</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
                       <property name="side">top</property>
@@ -1290,8 +1621,8 @@ Rehabilitation</property>
                 </child>
                 <child>
                   <object class="ttk.Combobox" id="combobox18">
-                    <property name="textvariable">int:timeDurationVOR</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="textvariable">int:verticalRangeVP</property>
+                    <property name="values">0 5 10 15 -5 -10 -15 </property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1310,87 +1641,8 @@ Rehabilitation</property>
               </object>
             </child>
             <child>
-              <object class="ttk.Frame" id="frame39">
-                <property name="height">200</property>
-                <property name="width">200</property>
-                <layout manager="pack">
-                  <property name="fill">x</property>
-                  <property name="side">top</property>
-                </layout>
-                <child>
-                  <object class="ttk.Label" id="label32">
-                    <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Horizontal range</property>
-                    <layout manager="pack">
-                      <property name="pady">5</property>
-                      <property name="side">top</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="ttk.Combobox" id="combobox19">
-                    <property name="textvariable">int:verticalRateVOR</property>
-                    <property name="values">4 8 10 14 18 22</property>
-                    <layout manager="pack">
-                      <property name="side">top</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="ttk.Separator" id="separator29">
-                    <property name="orient">horizontal</property>
-                    <layout manager="pack">
-                      <property name="ipadx">75</property>
-                      <property name="pady">15</property>
-                      <property name="side">bottom</property>
-                    </layout>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="ttk.Frame" id="frame40">
-                <property name="height">200</property>
-                <property name="width">200</property>
-                <layout manager="pack">
-                  <property name="fill">x</property>
-                  <property name="side">top</property>
-                </layout>
-                <child>
-                  <object class="ttk.Label" id="label33">
-                    <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Vertical range</property>
-                    <layout manager="pack">
-                      <property name="pady">5</property>
-                      <property name="side">top</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="ttk.Combobox" id="combobox20">
-                    <property name="textvariable">int:verticalSpeedSM</property>
-                    <property name="values">0 400 800 1080</property>
-                    <layout manager="pack">
-                      <property name="side">top</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="ttk.Separator" id="separator30">
-                    <property name="orient">horizontal</property>
-                    <layout manager="pack">
-                      <property name="ipadx">75</property>
-                      <property name="pady">15</property>
-                      <property name="side">bottom</property>
-                    </layout>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="ttk.Button" id="button2" named="True">
-                <property name="command" type="command" cbtype="simple">startVOR</property>
-                <property name="state">disabled</property>
+              <object class="ttk.Button" id="vpStartButton" named="True">
+                <property name="command" type="command" cbtype="simple">startVP</property>
                 <property name="text" translatable="yes">Start</property>
                 <layout manager="pack">
                   <property name="pady">10</property>
@@ -1399,26 +1651,18 @@ Rehabilitation</property>
               </object>
             </child>
             <child>
-              <object class="ttk.Label" id="label35">
+              <object class="ttk.Label" id="label34">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Space will reset position</property>
+                <property name="text" translatable="yes">Press space reset IMU
+during exercise</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
+                  <property name="ipady">2</property>
                   <property name="side">top</property>
                 </layout>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="ttk.Frame" id="frame12">
-            <property name="height">200</property>
-            <property name="width">200</property>
-            <layout manager="pack">
-              <property name="fill">y</property>
-              <property name="side">right</property>
-            </layout>
           </object>
         </child>
       </object>

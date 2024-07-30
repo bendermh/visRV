@@ -26,6 +26,7 @@ import smoothPursuit
 import saccades
 import okn
 import vor
+import vp
 
 
 PROJECT_PATH = pathlib.Path(__file__).parent
@@ -54,6 +55,8 @@ class visRV:
         self.startSMButton = builder.get_object("smStartButton")
         self.startOKButton = builder.get_object("okStartButton")
         self.startVORButton = builder.get_object("vorStartButton")
+        self.startVORSButton = builder.get_object("vorsStartButton")
+        self.startVPButton = builder.get_object("vpStartButton")
         # IMU Callback
         self.readIMU = FnVoid_VoidP_DataP(self.streamIMU)
 
@@ -95,6 +98,10 @@ class visRV:
             "startSM": self.startSM,
             "startOK": self.startOK,
             "startVOR": self.startVOR,
+            "startVORS": self.startVORS,
+            "startVP": self.startVP,
+            
+            
             "connectIMU": self.connectIMU,
             "scanIMU": self.scanIMU,
             "resetIMU":self.resetIMU,
@@ -118,6 +125,8 @@ class visRV:
         preSizeSM = "S"
         preSizeOK = "S"
         preSizeVOR ="S"
+        preSizeVORS ="S"
+        preSizeVP ="S"
         
         match self.builder.get_variable("targetSizeSP").get():
             case "Small":
@@ -162,12 +171,36 @@ class visRV:
            case _:
                preSizeVOR = "M"
                print("GUI Size imput is unknown for VOR adaptation!")
+               
+        match self.builder.get_variable("targetSizeVORS").get():
+           case "Small":
+               preSizeVORS = "S"
+           case "Medium":
+               preSizeVORS = "M"
+           case "Large":
+               preSizeVORS = "L"
+           case _:
+               preSizeVORS = "M"
+               print("GUI Size imput is unknown for VOR suppression!")
+
+        match self.builder.get_variable("targetSizeVP").get():
+           case "Small":
+               preSizeVP = "S"
+           case "Medium":
+               preSizeVP = "M"
+           case "Large":
+               preSizeVP = "L"
+           case _:
+               preSizeVP = "M"
+               print("GUI Size imput is unknown for vis PONG!")
         
         self.monitorSelected = preMonitor
         self.targetSizeSP = preSizeSP
         self.targetSizeSM = preSizeSM
         self.targetSizeOK = preSizeOK
         self.targetSizeVOR = preSizeVOR
+        self.targetSizeVORS = preSizeVORS
+        self.targetSizeVP = preSizeVP
         
         self.timeDurationSP = self.builder.get_variable("timeDurationSP").get()
         self.horizontalSpeedSP = self.builder.get_variable("horizontalSpeedSP").get()
@@ -190,10 +223,20 @@ class visRV:
         self.verticalRangeVOR = self.builder.get_variable("verticalRangeVOR").get()
         self.targetChangeVOR = self.builder.get_variable("targetChangeVOR").get()
         
+        self.timeDurationVORS = self.builder.get_variable("timeDurationVORS").get()
+        self.horizontalRangeVORS = self.builder.get_variable("horizontalRangeVORS").get()
+        self.verticalRangeVORS = self.builder.get_variable("verticalRangeVORS").get()
+        self.targetChangeVORS = self.builder.get_variable("targetChangeVORS").get()
+        
+        self.timeDurationVP = self.builder.get_variable("timeDurationVP").get()
+        self.horizontalRangeVP = self.builder.get_variable("horizontalRangeVP").get()
+        self.verticalRangeVP = self.builder.get_variable("verticalRangeVP").get()
+        self.targetChangeVP = self.builder.get_variable("targetChangeVP").get()
+        
         if not onlyRead:
         #default GUI menus values
            self.builder.get_variable("timeDurationSP").set(120)
-           self.builder.get_variable("horizontalSpeedSP").set(8)
+           self.builder.get_variable("horizontalSpeedSP").set(10)
            self.builder.get_variable("verticalSpeedSP").set(0)
            self.builder.get_variable("targetChangeSP").set(2)
            
@@ -207,9 +250,19 @@ class visRV:
            self.builder.get_variable("directionOK").set("Right")
            
            self.builder.get_variable("timeDurationVOR").set(120)
-           self.builder.get_variable("horizontalRangeVOR").set(30)
+           self.builder.get_variable("horizontalRangeVOR").set(1)
            self.builder.get_variable("verticalRangeVOR").set(0)
            self.builder.get_variable("targetChangeVOR").set(2)
+           
+           self.builder.get_variable("timeDurationVORS").set(120)
+           self.builder.get_variable("horizontalRangeVORS").set(1)
+           self.builder.get_variable("verticalRangeVORS").set(0)
+           self.builder.get_variable("targetChangeVORS").set(2)
+           
+           self.builder.get_variable("timeDurationVP").set(120)
+           self.builder.get_variable("horizontalRangeVP").set(1)
+           self.builder.get_variable("verticalRangeVP").set(0)
+           self.builder.get_variable("targetChangeVP").set(10)
            
            self.guiVariables()
     
@@ -236,7 +289,6 @@ class visRV:
             self.guiVariables()
             self.safeIMUDisconnect()
             self.mainwindow.withdraw()
-            #vor.vor(self.targetSizeVOR, self.imuMac, vorTrain = True, self.verticalRangeVOR, self.horizontalRangeVOR, self.targetChangeVOR, self.timeDurationVOR, self.monitorSelected)
             vor.vor(self.targetSizeVOR,self.imuMac,True,self.verticalRangeVOR,self.horizontalRangeVOR,self.targetChangeVOR,self.timeDurationVOR,self.monitorSelected)
             time.sleep(2)
             self.mainwindow.deiconify()
@@ -245,6 +297,34 @@ class visRV:
             self.connectIMU()
         else:
             messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
+            
+    def startVORS(self):
+         if self.isIMUConected:
+             self.guiVariables()
+             self.safeIMUDisconnect()
+             self.mainwindow.withdraw()
+             vor.vor(self.targetSizeVORS,self.imuMac,False,self.verticalRangeVORS,self.horizontalRangeVORS,self.targetChangeVORS,self.timeDurationVORS,self.monitorSelected)
+             time.sleep(2)
+             self.mainwindow.deiconify()
+             self.canConnect = True
+             time.sleep(2)
+             self.connectIMU()
+         else:
+             messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
+    
+    def startVP(self):
+         if self.isIMUConected:
+             self.guiVariables()
+             self.safeIMUDisconnect()
+             self.mainwindow.withdraw()
+             vp.vp(self.targetSizeVP,self.imuMac,False,self.verticalRangeVP,self.horizontalRangeVP,self.targetChangeVP,self.timeDurationVP,self.monitorSelected)
+             time.sleep(2)
+             self.mainwindow.deiconify()
+             self.canConnect = True
+             time.sleep(2)
+             self.connectIMU()
+         else:
+             messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
     
     def loadConfig(self):
         config = configparser.ConfigParser()
@@ -298,7 +378,7 @@ class visRV:
                 print("IMU is NOT connected")
                 self.isIMUConected = False
                 self.canConnect = True
-                messagebox.showinfo("Warning", "Unable to connec to with IMU, try wake up or reset current IMU or selecting other IMU")
+                messagebox.showinfo("Warning", "Unable to connec to with IMU, try wake up or pair again current IMU, revise IMU battery level")
                 
         else:
             print("IMU is already connected")
@@ -328,6 +408,10 @@ class visRV:
 
     
     def resetIMU(self):
+        answer = messagebox.askokcancel("Be aware","Reset procedure will lost IMU callibration, do not continue if you do not know to callibrate the IMU. Do you want to continue ?")
+        if not answer:
+            return
+        
         if self.isIMUConected:
             answer = messagebox.askokcancel("Be aware","Reset procedure will close the program and data will be lost. Do you want to continue ?")
             if answer:
