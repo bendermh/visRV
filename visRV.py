@@ -108,6 +108,11 @@ class visRV:
         }
         builder.connect_callbacks(callbacks)
         
+        #Scan for devices (to avoid IMU setup each time)
+        BleScanner.start()
+        time.sleep(2.0)
+        BleScanner.stop()
+        
     def guiVariables(self, onlyRead = True):
         preMonitor = 0
         match self.builder.get_variable("monitorSelected").get():
