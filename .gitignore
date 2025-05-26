@@ -46,3 +46,4 @@ Thumbs.db
 # Other common ignores
 *.log
 *.tmp
+.metawear/
