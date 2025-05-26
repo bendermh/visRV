@@ -2,7 +2,7 @@
 """
 Created on Fri Jun  7 10:06:34 2024
 
-@author: Hospital Donostia
+@author: Jorge Rey-Martinez
 """
 
 import pygame as pg
@@ -13,13 +13,11 @@ from scipy.spatial.transform import Rotation
 import time
 import random
 
-def vp(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = False, vRange = 0, hRange = 10, timeStill = 1.0, totalTime=120,monitor=0):
-    #objetcs
+def vp(targetSize= "L",macIMU="C7:0F:6B:58:F9:CB", vorTrain = False, vRange = 0, hRange = 10, timeStill = 1.0, totalTime=120,monitor=0, tolerance=2):
     if monitor > pg.display.get_num_displays():
         monitor = 0
         print("Monitor is out of range, autoreset to 0. Detected monitors: " + str(pg.display.get_num_displays()))
-    
-    main(targetSize= targetSize,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange, timeStill = timeStill, totalTime=totalTime,monitor=monitor)
+    main(targetSize= targetSize,mac = macIMU, vorTrain = vorTrain, vRange=vRange, hRange = hRange, timeStill = timeStill, totalTime=totalTime,monitor=monitor, tolerance=tolerance)
     
 class target():
     def __init__(self,targetSize,mac,vorTrain, vRange, hRange):
@@ -31,12 +29,13 @@ class target():
         self.timeLast = None
         self.signal = None
         self.sample = None
-        self.headPositionH = 90.0 # 90 Deg is button and led in the bottom and looking at examiners positioned on the back head of participant
+        self.headPositionH = 90.0
         self.headPositionV = 90.0
-        self.biasH = 0 #to modify if accelerometer is not accurate
+        self.prev_headPositionH = 90.0
+        self.biasH = 0
         self.biasV = 0
-        self.samplingInterval = 0.01 # minimum time in secs to read IMU data 0.01 are 65Hz aprox
-        self.timeIMUSetup = 2.1 # delay in seconds to stream data to avoid IMU setup empty samples
+        self.samplingInterval = 0.01
+        self.timeIMUSetup = 2.1
         self.screenPositionH = self.screen.get_width()//2
         self.screenPositionV = self.screen.get_height()//2
         self.headRangeH = hRange
@@ -52,7 +51,6 @@ class target():
         self.currentText = random.choice(self.targetList)
         
         match targetSize:
-                
             case "S":
                 self.typeSize = 32
                 self.radius = 30
@@ -76,27 +74,42 @@ class target():
             self.isConected = True
             print("IMU connected, setting Up")
             self.configureIMU()
-            
         except:
             self.isConected = False
             print("IMU connection error")
-        
-                
-    def checkHead(self,background,timeStill):
+    
+    def checkHead(self,background,timeStill, show_target, show_target_until, tolerance=2):
         if self.headRangeH > 0:
             targetH = 90 + self.headRangeH
         else:
             targetH = 90 - abs(self.headRangeH)
             
-        colisionH = self.headPositionH-targetH
+        colisionH = self.headPositionH - targetH
+        print(int(colisionH))  # print every sample, as original
+        collision = False
+
+        # THRESHOLD CROSSING with tolerance (ascending only)
+        # Detects when head moves from below threshold (with tolerance) to above or equal
         if not targetH == 90:
-            if colisionH == 0:
+            if (
+                (self.prev_headPositionH < (targetH - tolerance)) and
+                (self.headPositionH >= (targetH - tolerance))
+            ):
                 print("Colision")
-        print(colisionH)
-        
-        
-        
-        
+                print(f"Threshold: {targetH}° | Tolerance: ±{tolerance}°")
+                self.currentText = random.choice(self.targetList)
+                print("Target:", self.currentText)
+                collision = True
+        now = time.time()
+        if collision:
+            show_target[0] = True
+            show_target_until[0] = now + timeStill
+        if show_target[0] and now < show_target_until[0]:
+            self.drawTarget()
+        elif show_target[0] and now >= show_target_until[0]:
+            show_target[0] = False
+        self.prev_headPositionH = self.headPositionH  # Update previous value
+
     def drawTarget(self):
         self.center = (self.x,self.y)
         self.circle = pg.draw.circle(self.screen, (255,255,255), (self.center), self.radius,width = self.border)
@@ -105,29 +118,22 @@ class target():
         labelPos = self.label.get_rect()
         labelPos.center = self.center
         self.screen.blit(self.label, labelPos)
-        self.currentText = random.choice(self.targetList)
-        print("Target: " + self.currentText)
-        
-        
+
     def setBias(self):
         self.biasH += 90-self.headPositionH
         self.biasV += 90-self.headPositionV
     
     def configureIMU(self):
         print("Setting up IMU...")
-        # confiure connection
         libmetawear.mbl_mw_settings_set_connection_parameters(self.imuDevice.board, 7.5, 7.5, 0, 6000)
         time.sleep(1.5)
-        # setup quaternion
         libmetawear.mbl_mw_sensor_fusion_set_mode(self.imuDevice.board, SensorFusionMode.NDOF);
         libmetawear.mbl_mw_sensor_fusion_set_acc_range(self.imuDevice.board, SensorFusionAccRange._4G)
         libmetawear.mbl_mw_sensor_fusion_set_gyro_range(self.imuDevice.board, SensorFusionGyroRange._2000DPS)
         libmetawear.mbl_mw_sensor_fusion_write_config(self.imuDevice.board)
         time.sleep(0.5)
-        # get quat signal and subscribe
         self.signal = libmetawear.mbl_mw_sensor_fusion_get_data_signal(self.imuDevice.board, SensorFusionData.EULER_ANGLE);
         libmetawear.mbl_mw_datasignal_subscribe(self.signal, None, self.readIMU)
-        # start acc, gyro, mag
         libmetawear.mbl_mw_sensor_fusion_enable_data(self.imuDevice.board, SensorFusionData.EULER_ANGLE);
         libmetawear.mbl_mw_sensor_fusion_start(self.imuDevice.board);
         print("IMU setup done.")
@@ -137,79 +143,67 @@ class target():
         timeNow = time.time()
         if (timeNow-self.timeLast) > self.samplingInterval: 
             if self.isConected:
-                if (self.timeLast-self.timeConnect) > self.timeIMUSetup: # add a little delay to stream data to avoid setup empty samples
+                if (self.timeLast-self.timeConnect) > self.timeIMUSetup:
                     euler = parse_value(data)
                     self.sample = ((self.timeLast-self.timeConnect)-self.timeIMUSetup,euler)
             self.timeLast = time.time()
             self.headPositionH = round(self.sample[1].yaw + 90.0)
             self.headPositionV = round(self.sample[1].pitch*-1)
-    
             if self.headPositionH > 360:
                 self.headPositionH -= 360
-           
             self.headPositionH += self.biasH
             self.headPositionV += self.biasV
-            
     
     def safeIMUDisconnect(self):    
         if self.isConected:
-                    print("Closing IMU connection...")
-                    #stop
-                    libmetawear.mbl_mw_sensor_fusion_stop(self.imuDevice.board)
-                    libmetawear.mbl_mw_datasignal_unsubscribe(self.signal)
-                    time.sleep(0.5)
-                    # disconnect
-                    self.imuDevice.disconnect()
-                    time.sleep(3)
-                    self.isConected = False
-                    print("IMU connection closed")
-                    
+            print("Closing IMU connection...")
+            libmetawear.mbl_mw_sensor_fusion_stop(self.imuDevice.board)
+            libmetawear.mbl_mw_datasignal_unsubscribe(self.signal)
+            time.sleep(0.5)
+            self.imuDevice.disconnect()
+            time.sleep(3)
+            self.isConected = False
+            print("IMU connection closed")
         else:
-                    print("No IMU connection to close")    
+            print("No IMU connection to close")    
 
-
-def main(targetSize,mac,vorTrain,vRange,hRange, timeStill, totalTime,monitor):
+def main(targetSize,mac,vorTrain,vRange,hRange, timeStill, totalTime,monitor, tolerance=2):
     pg.init()
     screen = pg.display.set_mode(size=(1920,1080), flags= pg.FULLSCREEN|pg.NOFRAME|pg.DOUBLEBUF, display= monitor, vsync= 1)
     screen.fill(color=(0,0,0))
     fps = 60
-    #background
+    pg.mouse.set_visible(False)
     background = pg.Surface(screen.get_size())
     background = background.convert()
     background.fill((0, 0, 0))
-    
-    # Display The Background
     screen.blit(background, (0, 0))
-    #clock = pg.time.Clock()
-    
-    #prepare objects
     vpGame = target(targetSize,mac,vorTrain,vRange,hRange)
     
-
-    
-    #prepare loop and timers-event
     going = True
     clock = pg.time.Clock()
     pg.time.set_timer(pg.QUIT,(totalTime*1000),1)
 
-    while going:
-        clock.tick(fps)
-        going = True
-        # Handle Input Events
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                going = False
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    going = False
-                if event.key == pg.K_SPACE:
-                    vpGame.setBias()
-        vpGame.checkHead(background,timeStill)
-        
-    pg.quit()
-    vpGame.safeIMUDisconnect()
-    print("Excercise finished. Bye !")
+    show_target = [False]
+    show_target_until = [0]
 
+    try:
+        while going:
+            clock.tick(fps)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    going = False
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        going = False
+                    if event.key == pg.K_SPACE:
+                        vpGame.setBias()
+            screen.fill((0,0,0))
+            vpGame.checkHead(background,timeStill, show_target, show_target_until, tolerance=tolerance)
+            pg.display.flip()
+    finally:
+        pg.quit()
+        vpGame.safeIMUDisconnect()
+        print("Excercise finished. Bye !")
 
 #for testing purposes
 if __name__ == "__main__":

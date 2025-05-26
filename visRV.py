@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Spyder IDE
 
-tBPPV, code by Jorge Rey-Martinez 2023.
+visRV, code by Jorge Rey-Martinez 2023-25.
 
 """
 import pathlib
@@ -100,6 +100,7 @@ class visRV:
             "startVOR": self.startVOR,
             "startVORS": self.startVORS,
             "startVP": self.startVP,
+            "changeTemplate": self.changeTemplate,
             
             
             "connectIMU": self.connectIMU,
@@ -236,19 +237,21 @@ class visRV:
         self.timeDurationVP = self.builder.get_variable("timeDurationVP").get()
         self.horizontalRangeVP = self.builder.get_variable("horizontalRangeVP").get()
         self.verticalRangeVP = self.builder.get_variable("verticalRangeVP").get()
-        self.targetChangeVP = self.builder.get_variable("targetChangeVP").get()
+        self.targetStillVP = self.builder.get_variable("targetStillVP").get()
+        
+        self.templateValue = self.builder.get_variable("templateValue").get()
         
         if not onlyRead:
         #default GUI menus values
            self.builder.get_variable("timeDurationSP").set(120)
            self.builder.get_variable("horizontalSpeedSP").set(10)
            self.builder.get_variable("verticalSpeedSP").set(0)
-           self.builder.get_variable("targetChangeSP").set(2)
+           self.builder.get_variable("targetChangeSP").set(1.5)
            
            self.builder.get_variable("timeDurationSM").set(120)
            self.builder.get_variable("horizontalSpeedSM").set(1900)
            self.builder.get_variable("verticalSpeedSM").set(0)
-           self.builder.get_variable("targetChangeSM").set(1)
+           self.builder.get_variable("targetChangeSM").set(1.5)
            
            self.builder.get_variable("timeDurationOK").set(120)
            self.builder.get_variable("barSpeedOK").set(16)
@@ -257,17 +260,19 @@ class visRV:
            self.builder.get_variable("timeDurationVOR").set(120)
            self.builder.get_variable("horizontalRangeVOR").set(1)
            self.builder.get_variable("verticalRangeVOR").set(0)
-           self.builder.get_variable("targetChangeVOR").set(2)
+           self.builder.get_variable("targetChangeVOR").set(1.5)
            
            self.builder.get_variable("timeDurationVORS").set(120)
            self.builder.get_variable("horizontalRangeVORS").set(1)
            self.builder.get_variable("verticalRangeVORS").set(0)
-           self.builder.get_variable("targetChangeVORS").set(2)
+           self.builder.get_variable("targetChangeVORS").set(1.5)
            
            self.builder.get_variable("timeDurationVP").set(120)
-           self.builder.get_variable("horizontalRangeVP").set(1)
-           self.builder.get_variable("verticalRangeVP").set(0)
-           self.builder.get_variable("targetChangeVP").set(10)
+           self.builder.get_variable("horizontalRangeVP").set(5)
+           self.builder.get_variable("verticalRangeVP").set(60)
+           self.builder.get_variable("targetStillVP").set(0.5)
+           
+           self.builder.get_variable("templateValue").set("Default")
            
            self.guiVariables()
     
@@ -322,7 +327,7 @@ class visRV:
              self.guiVariables()
              self.safeIMUDisconnect()
              self.mainwindow.withdraw()
-             vp.vp(self.targetSizeVP,self.imuMac,False,self.verticalRangeVP,self.horizontalRangeVP,self.targetChangeVP,self.timeDurationVP,self.monitorSelected)
+             vp.vp(self.targetSizeVP,self.imuMac,False,self.verticalRangeVP,self.horizontalRangeVP,self.targetStillVP,self.timeDurationVP,self.monitorSelected)
              time.sleep(2)
              self.mainwindow.deiconify()
              self.canConnect = True
@@ -330,6 +335,11 @@ class visRV:
              self.connectIMU()
          else:
              messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
+    
+    def changeTemplate(self,selValue):
+        self.templateValue = selValue
+        print(self.templateValue)
+        self.set_template_values(self.templateValue)
     
     def loadConfig(self):
         config = configparser.ConfigParser()
@@ -483,6 +493,106 @@ class visRV:
                 
         else:
                 print("No IMU connection to close")
+                
+    def set_template_values(self, template):
+        #  "Default"
+        if template == "Default":
+            self.guiVariables(False)
+            return
+        # Templates:
+        elif template == "Easy":
+            self.builder.get_variable("timeDurationSP").set(60)
+            self.builder.get_variable("horizontalSpeedSP").set(5)
+            self.builder.get_variable("verticalSpeedSP").set(0)
+            self.builder.get_variable("targetChangeSP").set(2.5)
+                
+            self.builder.get_variable("timeDurationSM").set(60)
+            self.builder.get_variable("horizontalSpeedSM").set(1000)
+            self.builder.get_variable("verticalSpeedSM").set(0)
+            self.builder.get_variable("targetChangeSM").set(2.5)
+                
+            self.builder.get_variable("timeDurationOK").set(60)
+            self.builder.get_variable("barSpeedOK").set(8)
+            self.builder.get_variable("directionOK").set("Right")
+                
+            self.builder.get_variable("timeDurationVOR").set(60)
+            self.builder.get_variable("horizontalRangeVOR").set(1)
+            self.builder.get_variable("verticalRangeVOR").set(0)
+            self.builder.get_variable("targetChangeVOR").set(2.5)
+
+            self.builder.get_variable("timeDurationVORS").set(60)
+            self.builder.get_variable("horizontalRangeVORS").set(1)
+            self.builder.get_variable("verticalRangeVORS").set(0)
+            self.builder.get_variable("targetChangeVORS").set(2.5)
+
+            self.builder.get_variable("timeDurationVP").set(60)
+            self.builder.get_variable("horizontalRangeVP").set(5)
+            self.builder.get_variable("verticalRangeVP").set(30)
+            self.builder.get_variable("targetStillVP").set(1.0)
+
+        elif template == "Medium":
+            # Pon aquí valores intermedios
+            self.builder.get_variable("timeDurationSP").set(90)
+            self.builder.get_variable("horizontalSpeedSP").set(15)
+            self.builder.get_variable("verticalSpeedSP").set(0)
+            self.builder.get_variable("targetChangeSP").set(1.5)
+            
+            self.builder.get_variable("timeDurationSM").set(90)
+            self.builder.get_variable("horizontalSpeedSM").set(1500)
+            self.builder.get_variable("verticalSpeedSM").set(0)
+            self.builder.get_variable("targetChangeSM").set(1.5)
+
+            self.builder.get_variable("timeDurationOK").set(90)
+            self.builder.get_variable("barSpeedOK").set(12)
+            self.builder.get_variable("directionOK").set("Right")
+
+            self.builder.get_variable("timeDurationVOR").set(90)
+            self.builder.get_variable("horizontalRangeVOR").set(2)
+            self.builder.get_variable("verticalRangeVOR").set(0)
+            self.builder.get_variable("targetChangeVOR").set(2.0)
+
+            self.builder.get_variable("timeDurationVORS").set(90)
+            self.builder.get_variable("horizontalRangeVORS").set(2)
+            self.builder.get_variable("verticalRangeVORS").set(0)
+            self.builder.get_variable("targetChangeVORS").set(2.0)
+
+            self.builder.get_variable("timeDurationVP").set(90)
+            self.builder.get_variable("horizontalRangeVP").set(10)
+            self.builder.get_variable("verticalRangeVP").set(40)
+            self.builder.get_variable("targetStillVP").set(0.75)
+
+        elif template == "Hard":
+            # Pon aquí valores "duros"
+            self.builder.get_variable("timeDurationSP").set(120)
+            self.builder.get_variable("horizontalSpeedSP").set(30)
+            self.builder.get_variable("verticalSpeedSP").set(5)
+            self.builder.get_variable("targetChangeSP").set(0.7)
+
+            self.builder.get_variable("timeDurationSM").set(120)
+            self.builder.get_variable("horizontalSpeedSM").set(2500)
+            self.builder.get_variable("verticalSpeedSM").set(5)
+            self.builder.get_variable("targetChangeSM").set(0.7)
+
+            self.builder.get_variable("timeDurationOK").set(120)
+            self.builder.get_variable("barSpeedOK").set(24)
+            self.builder.get_variable("directionOK").set("Right")
+
+            self.builder.get_variable("timeDurationVOR").set(120)
+            self.builder.get_variable("horizontalRangeVOR").set(3)
+            self.builder.get_variable("verticalRangeVOR").set(1)
+            self.builder.get_variable("targetChangeVOR").set(0.7)
+
+            self.builder.get_variable("timeDurationVORS").set(120)
+            self.builder.get_variable("horizontalRangeVORS").set(3)
+            self.builder.get_variable("verticalRangeVORS").set(1)
+            self.builder.get_variable("targetChangeVORS").set(0.7)
+
+            self.builder.get_variable("timeDurationVP").set(120)
+            self.builder.get_variable("horizontalRangeVP").set(15)
+            self.builder.get_variable("verticalRangeVP").set(80)
+            self.builder.get_variable("targetStillVP").set(0.3)
+
+        self.guiVariables()
                 
     def on_exit(self):
         if self.isIMUConected:

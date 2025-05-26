@@ -2,7 +2,7 @@
 """
 Created on Fri Jun  7 10:06:34 2024
 
-@author: Hospital Donostia
+@author: Jorge Rey-Martinez
 """
 
 import pygame as pg
@@ -78,6 +78,7 @@ def main(targetSize= "S",x_vel=8,y_vel=2,timeChange=1,totalTime=120,monitor=0):
     screen = pg.display.set_mode(size=(1920,1080), flags= pg.FULLSCREEN|pg.NOFRAME|pg.DOUBLEBUF, display= monitor, vsync= 1)
     screen.fill(color=(0,0,0))
     fps = 60
+    pg.mouse.set_visible(False)
     #background
     background = pg.Surface(screen.get_size())
     background = background.convert()
