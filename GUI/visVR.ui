@@ -284,7 +284,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox5">
                     <property name="textvariable">double:targetChangeSP</property>
-                    <property name="values">1.5 1 0.75 0.5 0.25</property>
+                    <property name="values">1.5 1.25 1 0.75 0.5 0.25</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -323,7 +323,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox2">
                     <property name="textvariable">int:timeDurationSP</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -362,7 +362,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox3">
                     <property name="textvariable">int:horizontalSpeedSP</property>
-                    <property name="values">0 2 4 6 8 10 12 16 18</property>
+                    <property name="values">0 2 4 6 8 10 12 14 16 18</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -401,7 +401,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox4">
                     <property name="textvariable">int:verticalSpeedSP</property>
-                    <property name="values">0 2 4 6 8 10 12 16 18</property>
+                    <property name="values">0 2 4 6 8 10 12 14 16 18</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -523,7 +523,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox1">
                     <property name="textvariable">double:targetChangeSM</property>
-                    <property name="values">1.5 1 0.75 0.5 0.25</property>
+                    <property name="values">1.5 1.25 1 0.75 0.5 0.25</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -562,7 +562,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox6">
                     <property name="textvariable">int:timeDurationSM</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -762,7 +762,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox9">
                     <property name="textvariable">int:barSpeedOK</property>
-                    <property name="values">8 10 12 16 20 24 32</property>
+                    <property name="values">6 8 10 12 14 16 18 20 24 30</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -801,7 +801,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox10">
                     <property name="textvariable">int:timeDurationOK</property>
-                    <property name="values">30 60 90 120 160 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1040,7 +1040,7 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox14">
                     <property name="textvariable">int:timeDurationVOR</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1292,7 +1292,7 @@ during exercise</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox22">
                     <property name="textvariable">int:timeDurationVORS</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1544,7 +1544,7 @@ during exercise</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox19">
                     <property name="textvariable">int:timeDurationVP</property>
-                    <property name="values">30 60 120 180 240</property>
+                    <property name="values">30 60 90 120 180 240</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1583,7 +1583,7 @@ during exercise</property>
                 <child>
                   <object class="ttk.Combobox" id="combobox17">
                     <property name="textvariable">int:horizontalRangeVP</property>
-                    <property name="values">0 5 10 15 -5 -10 -15 </property>
+                    <property name="values">-15 -10 -5 0 5 10 15</property>
                     <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
@@ -1717,7 +1717,7 @@ during exercise</property>
                   <object class="ttk.OptionMenu" id="optionmenu8">
                     <property name="command" type="command" cbtype="simple">changeTemplate</property>
                     <property name="value">Default</property>
-                    <property name="values">Default,Easy,Medium,Hard</property>
+                    <property name="values">Default,Easy,Medium,Hard,Very hard</property>
                     <property name="variable">string:templateValue</property>
                     <layout manager="pack">
                       <property name="ipadx">18</property>

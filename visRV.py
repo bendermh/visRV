@@ -231,7 +231,6 @@ class visRV:
         
         self.timeDurationVORS = self.builder.get_variable("timeDurationVORS").get()
         self.horizontalRangeVORS = self.builder.get_variable("horizontalRangeVORS").get()
-        self.verticalRangeVORS = self.builder.get_variable("verticalRangeVORS").get()
         self.targetChangeVORS = self.builder.get_variable("targetChangeVORS").get()
         
         self.timeDurationVP = self.builder.get_variable("timeDurationVP").get()
@@ -253,8 +252,8 @@ class visRV:
            self.builder.get_variable("verticalSpeedSM").set(0)
            self.builder.get_variable("targetChangeSM").set(1.5)
            
-           self.builder.get_variable("timeDurationOK").set(120)
-           self.builder.get_variable("barSpeedOK").set(16)
+           self.builder.get_variable("timeDurationOK").set(90)
+           self.builder.get_variable("barSpeedOK").set(12)
            self.builder.get_variable("directionOK").set("Right")
            
            self.builder.get_variable("timeDurationVOR").set(120)
@@ -269,8 +268,7 @@ class visRV:
            
            self.builder.get_variable("timeDurationVP").set(120)
            self.builder.get_variable("horizontalRangeVP").set(5)
-           self.builder.get_variable("verticalRangeVP").set(60)
-           self.builder.get_variable("targetStillVP").set(0.5)
+           self.builder.get_variable("targetStillVP").set(0.75)
            
            self.builder.get_variable("templateValue").set("Default")
            
@@ -338,7 +336,6 @@ class visRV:
     
     def changeTemplate(self,selValue):
         self.templateValue = selValue
-        print(self.templateValue)
         self.set_template_values(self.templateValue)
     
     def loadConfig(self):
@@ -501,96 +498,145 @@ class visRV:
             return
         # Templates:
         elif template == "Easy":
-            self.builder.get_variable("timeDurationSP").set(60)
-            self.builder.get_variable("horizontalSpeedSP").set(5)
+            self.builder.get_variable("timeDurationSP").set(90)
+            self.builder.get_variable("horizontalSpeedSP").set(6)
             self.builder.get_variable("verticalSpeedSP").set(0)
-            self.builder.get_variable("targetChangeSP").set(2.5)
+            self.builder.get_variable("targetChangeSP").set(1.25)
+            self.builder.get_variable("targetSizeSP").set("Large")
+            
                 
-            self.builder.get_variable("timeDurationSM").set(60)
-            self.builder.get_variable("horizontalSpeedSM").set(1000)
+            self.builder.get_variable("timeDurationSM").set(90)
+            self.builder.get_variable("horizontalSpeedSM").set(1900)
             self.builder.get_variable("verticalSpeedSM").set(0)
-            self.builder.get_variable("targetChangeSM").set(2.5)
+            self.builder.get_variable("targetChangeSM").set(1.25)
+            self.builder.get_variable("targetSizeSM").set("Large")
                 
             self.builder.get_variable("timeDurationOK").set(60)
             self.builder.get_variable("barSpeedOK").set(8)
             self.builder.get_variable("directionOK").set("Right")
+            self.builder.get_variable("targetSizeOK").set("Large")
                 
-            self.builder.get_variable("timeDurationVOR").set(60)
+            self.builder.get_variable("timeDurationVOR").set(90)
             self.builder.get_variable("horizontalRangeVOR").set(1)
             self.builder.get_variable("verticalRangeVOR").set(0)
-            self.builder.get_variable("targetChangeVOR").set(2.5)
+            self.builder.get_variable("targetChangeVOR").set(1.25)
+            self.builder.get_variable("targetSizeVOR").set("Large")
 
-            self.builder.get_variable("timeDurationVORS").set(60)
+            self.builder.get_variable("timeDurationVORS").set(90)
             self.builder.get_variable("horizontalRangeVORS").set(1)
             self.builder.get_variable("verticalRangeVORS").set(0)
-            self.builder.get_variable("targetChangeVORS").set(2.5)
+            self.builder.get_variable("targetChangeVORS").set(1.25)
+            self.builder.get_variable("targetSizeVORS").set("Large")
 
-            self.builder.get_variable("timeDurationVP").set(60)
+            self.builder.get_variable("timeDurationVP").set(90)
             self.builder.get_variable("horizontalRangeVP").set(5)
-            self.builder.get_variable("verticalRangeVP").set(30)
             self.builder.get_variable("targetStillVP").set(1.0)
+            self.builder.get_variable("targetSizeVP").set("Large")
 
         elif template == "Medium":
-            # Pon aquí valores intermedios
-            self.builder.get_variable("timeDurationSP").set(90)
-            self.builder.get_variable("horizontalSpeedSP").set(15)
-            self.builder.get_variable("verticalSpeedSP").set(0)
-            self.builder.get_variable("targetChangeSP").set(1.5)
+            self.builder.get_variable("timeDurationSP").set(120)
+            self.builder.get_variable("horizontalSpeedSP").set(14)
+            self.builder.get_variable("verticalSpeedSP").set(8)
+            self.builder.get_variable("targetChangeSP").set(1)
+            self.builder.get_variable("targetSizeSP").set("Medium")
             
-            self.builder.get_variable("timeDurationSM").set(90)
-            self.builder.get_variable("horizontalSpeedSM").set(1500)
-            self.builder.get_variable("verticalSpeedSM").set(0)
-            self.builder.get_variable("targetChangeSM").set(1.5)
+            self.builder.get_variable("timeDurationSM").set(120)
+            self.builder.get_variable("horizontalSpeedSM").set(1900)
+            self.builder.get_variable("verticalSpeedSM").set(1080)
+            self.builder.get_variable("targetChangeSM").set(1)
+            self.builder.get_variable("targetSizeSM").set("Medium")
 
             self.builder.get_variable("timeDurationOK").set(90)
             self.builder.get_variable("barSpeedOK").set(12)
             self.builder.get_variable("directionOK").set("Right")
-
-            self.builder.get_variable("timeDurationVOR").set(90)
-            self.builder.get_variable("horizontalRangeVOR").set(2)
-            self.builder.get_variable("verticalRangeVOR").set(0)
-            self.builder.get_variable("targetChangeVOR").set(2.0)
-
-            self.builder.get_variable("timeDurationVORS").set(90)
-            self.builder.get_variable("horizontalRangeVORS").set(2)
-            self.builder.get_variable("verticalRangeVORS").set(0)
-            self.builder.get_variable("targetChangeVORS").set(2.0)
-
-            self.builder.get_variable("timeDurationVP").set(90)
-            self.builder.get_variable("horizontalRangeVP").set(10)
-            self.builder.get_variable("verticalRangeVP").set(40)
-            self.builder.get_variable("targetStillVP").set(0.75)
-
-        elif template == "Hard":
-            # Pon aquí valores "duros"
-            self.builder.get_variable("timeDurationSP").set(120)
-            self.builder.get_variable("horizontalSpeedSP").set(30)
-            self.builder.get_variable("verticalSpeedSP").set(5)
-            self.builder.get_variable("targetChangeSP").set(0.7)
-
-            self.builder.get_variable("timeDurationSM").set(120)
-            self.builder.get_variable("horizontalSpeedSM").set(2500)
-            self.builder.get_variable("verticalSpeedSM").set(5)
-            self.builder.get_variable("targetChangeSM").set(0.7)
-
-            self.builder.get_variable("timeDurationOK").set(120)
-            self.builder.get_variable("barSpeedOK").set(24)
-            self.builder.get_variable("directionOK").set("Right")
+            self.builder.get_variable("targetSizeOK").set("Large")
 
             self.builder.get_variable("timeDurationVOR").set(120)
-            self.builder.get_variable("horizontalRangeVOR").set(3)
-            self.builder.get_variable("verticalRangeVOR").set(1)
-            self.builder.get_variable("targetChangeVOR").set(0.7)
+            self.builder.get_variable("horizontalRangeVOR").set(1)
+            self.builder.get_variable("verticalRangeVOR").set(0)
+            self.builder.get_variable("targetChangeVOR").set(1.0)
+            self.builder.get_variable("targetSizeVOR").set("Large")
 
             self.builder.get_variable("timeDurationVORS").set(120)
-            self.builder.get_variable("horizontalRangeVORS").set(3)
+            self.builder.get_variable("horizontalRangeVORS").set(1)
+            self.builder.get_variable("verticalRangeVORS").set(0)
+            self.builder.get_variable("targetChangeVORS").set(1.0)
+            self.builder.get_variable("targetSizeVORS").set("Large")
+
+            self.builder.get_variable("timeDurationVP").set(120)
+            self.builder.get_variable("horizontalRangeVP").set(10)
+            self.builder.get_variable("targetStillVP").set(0.75)
+            self.builder.get_variable("targetSizeVP").set("Large")
+
+        elif template == "Hard":
+            self.builder.get_variable("timeDurationSP").set(120)
+            self.builder.get_variable("horizontalSpeedSP").set(24)
+            self.builder.get_variable("verticalSpeedSP").set(16)
+            self.builder.get_variable("targetChangeSP").set(0.75)
+            self.builder.get_variable("targetSizeSP").set("Medium")
+
+            self.builder.get_variable("timeDurationSM").set(120)
+            self.builder.get_variable("horizontalSpeedSM").set(1900)
+            self.builder.get_variable("verticalSpeedSM").set(1080)
+            self.builder.get_variable("targetChangeSM").set(0.75)
+            self.builder.get_variable("targetSizeSM").set("Medium")
+
+            self.builder.get_variable("timeDurationOK").set(120)
+            self.builder.get_variable("barSpeedOK").set(18)
+            self.builder.get_variable("directionOK").set("Right")
+            self.builder.get_variable("targetSizeOK").set("Medium")
+
+            self.builder.get_variable("timeDurationVOR").set(120)
+            self.builder.get_variable("horizontalRangeVOR").set(1)
+            self.builder.get_variable("verticalRangeVOR").set(1)
+            self.builder.get_variable("targetChangeVOR").set(0.75)
+            self.builder.get_variable("targetSizeVOR").set("Medium")
+
+            self.builder.get_variable("timeDurationVORS").set(120)
+            self.builder.get_variable("horizontalRangeVORS").set(1)
             self.builder.get_variable("verticalRangeVORS").set(1)
-            self.builder.get_variable("targetChangeVORS").set(0.7)
+            self.builder.get_variable("targetChangeVORS").set(0.75)
+            self.builder.get_variable("targetSizeVORS").set("Medium")
 
             self.builder.get_variable("timeDurationVP").set(120)
             self.builder.get_variable("horizontalRangeVP").set(15)
-            self.builder.get_variable("verticalRangeVP").set(80)
-            self.builder.get_variable("targetStillVP").set(0.3)
+            self.builder.get_variable("targetStillVP").set(0.5)
+            self.builder.get_variable("targetSizeVP").set("Medium")
+        
+        elif template == "Very hard":
+            self.builder.get_variable("timeDurationSP").set(180)
+            self.builder.get_variable("horizontalSpeedSP").set(26)
+            self.builder.get_variable("verticalSpeedSP").set(18)
+            self.builder.get_variable("targetChangeSP").set(0.5)
+            self.builder.get_variable("targetSizeSP").set("Small")
+
+            self.builder.get_variable("timeDurationSM").set(180)
+            self.builder.get_variable("horizontalSpeedSM").set(1900)
+            self.builder.get_variable("verticalSpeedSM").set(1080)
+            self.builder.get_variable("targetChangeSM").set(0.75)
+            self.builder.get_variable("targetSizeSM").set("Small")
+
+            self.builder.get_variable("timeDurationOK").set(120)
+            self.builder.get_variable("barSpeedOK").set(20)
+            self.builder.get_variable("directionOK").set("Right")
+            self.builder.get_variable("targetSizeOK").set("Medium")
+
+            self.builder.get_variable("timeDurationVOR").set(180)
+            self.builder.get_variable("horizontalRangeVOR").set(1)
+            self.builder.get_variable("verticalRangeVOR").set(1)
+            self.builder.get_variable("targetChangeVOR").set(0.5)
+            self.builder.get_variable("targetSizeVOR").set("Small")
+
+            self.builder.get_variable("timeDurationVORS").set(180)
+            self.builder.get_variable("horizontalRangeVORS").set(1)
+            self.builder.get_variable("verticalRangeVORS").set(1)
+            self.builder.get_variable("targetChangeVORS").set(0.5)
+            self.builder.get_variable("targetSizeVORS").set("Small")
+
+            self.builder.get_variable("timeDurationVP").set(180)
+            self.builder.get_variable("horizontalRangeVP").set(15)
+            self.builder.get_variable("targetStillVP").set(0.25)
+            self.builder.get_variable("targetSizeVP").set("Small")
 
         self.guiVariables()
                 
