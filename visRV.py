@@ -231,11 +231,11 @@ class visRV:
         
         self.timeDurationVORS = self.builder.get_variable("timeDurationVORS").get()
         self.horizontalRangeVORS = self.builder.get_variable("horizontalRangeVORS").get()
+        self.verticalRangeVORS = self.builder.get_variable("verticalRangeVORS").get()
         self.targetChangeVORS = self.builder.get_variable("targetChangeVORS").get()
         
         self.timeDurationVP = self.builder.get_variable("timeDurationVP").get()
-        self.horizontalRangeVP = self.builder.get_variable("horizontalRangeVP").get()
-        self.verticalRangeVP = self.builder.get_variable("verticalRangeVP").get()
+        self.horizontalRangeVP = (self.builder.get_variable("horizontalRangeVP").get())*-1 #IMU direction appear to be inverted in vp module
         self.targetStillVP = self.builder.get_variable("targetStillVP").get()
         
         self.templateValue = self.builder.get_variable("templateValue").get()
@@ -325,7 +325,7 @@ class visRV:
              self.guiVariables()
              self.safeIMUDisconnect()
              self.mainwindow.withdraw()
-             vp.vp(self.targetSizeVP,self.imuMac,False,self.verticalRangeVP,self.horizontalRangeVP,self.targetStillVP,self.timeDurationVP,self.monitorSelected)
+             vp.vp(self.targetSizeVP,self.imuMac,False,self.horizontalRangeVP,self.targetStillVP,self.timeDurationVP,self.monitorSelected)
              time.sleep(2)
              self.mainwindow.deiconify()
              self.canConnect = True
