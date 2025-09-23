@@ -2,12 +2,13 @@
 """
 Spyder IDE
 
-visRV, code by Jorge Rey-Martinez 2023-25.
-
+visRV, code by Jorge Rey-Martinez & HAL 2023-25.
 """
+
 import pathlib
 import configparser
 import os
+import sys
 import deviceSelect
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -15,9 +16,9 @@ from tkinter import messagebox
 import pygubu
 import time
 from PIL import Image, ImageTk
-from mbientlab.metawear import MetaWear,libmetawear, parse_value
+from mbientlab.metawear import MetaWear, libmetawear, parse_value
 from mbientlab.metawear.cbindings import *
-from mbientlab.warble import * 
+from mbientlab.warble import *
 import six
 import collections
 import numpy as np
@@ -29,22 +30,38 @@ import vor
 import vp
 
 
+# ========== Resource path helper ==========
+def resource_path(relative_path):
+    """ Get absolute path to resource (works for dev and PyInstaller) """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
+# ========== Project resources ==========
 PROJECT_PATH = pathlib.Path(__file__).parent
-PROJECT_UI = PROJECT_PATH /"GUI"/ "visVR.ui"
-PROJECT_CONFIG = PROJECT_PATH /"config.ini"
-PROJECT_IMU_PIC = PROJECT_PATH /"GUI"/ "IMU.png"
+PROJECT_UI = resource_path(os.path.join("GUI", "visVR.ui"))
+PROJECT_CONFIG = resource_path("config.ini")
+PROJECT_IMU_PIC = resource_path(os.path.join("GUI", "IMU.png"))
+PROJECT_ICON = resource_path("GUI/VR_icon.ico")
+
 
 class visRV:
     def __init__(self, master=None):
-        # 1: Create a builder and setup resources path (if you have images)
+        # 1: Create a builder and setup resources path
         self.builder = builder = pygubu.Builder()
         builder.add_resource_path(PROJECT_PATH)
 
-        # 2: Load an ui file
+        # 2: Load UI file
         builder.add_from_file(PROJECT_UI)
 
         # 3: Create the mainwindow
         self.mainwindow = builder.get_object('mainWindow', master)
+
+        # 3b: Set application icon
+        try:
+            self.mainwindow.iconbitmap(PROJECT_ICON)
+        except Exception as e:
+            print(f"Warning: could not set icon ({e})")
 
         # 4: Connect tk objects and callbacks
         builder.connect_callbacks(self)
@@ -60,39 +77,38 @@ class visRV:
         # IMU Callback
         self.readIMU = FnVoid_VoidP_DataP(self.streamIMU)
 
-        
         # Other variables
         self.imuMac = ""
         self.canConnect = False
         self.isIMUConected = False
-        self.delayEvents = 150 # milliseconds to GUI events
+        self.delayEvents = 150
         self.imuDevice = None
         self.signal = None
         self.rawSample = None
-        self.sample = None # sample data format = (time stamp in seconds,(quaternion w, quaternion x, quaternion y, quaternion z)) quaternion in normalized units
+        self.sample = None
         self.timeZero = time.time()
         self.timeRecord = None
         self.timeConnect = None
         self.timeNow = None
         self.timeLast = None
-        self.samplingInterval = 0.01 # minimum time in secs to read IMU data 0.01 are 65Hz aprox
-        self.timeIMUSetup = 2.1 # delay in seconds to stream data to avoid IMU setup empty samples
-        self.livePlotBuffer = 500 #items in livePlotArray
+        self.samplingInterval = 0.01
+        self.timeIMUSetup = 2.1
+        self.livePlotBuffer = 500
         self.lPlotYmin = -360
         self.lPlotYmax = 360
         self.plotLiveTime = collections.deque(np.zeros(self.livePlotBuffer))
         self.plotLiveX = collections.deque(np.zeros(self.livePlotBuffer))
         self.plotLiveY = collections.deque(np.zeros(self.livePlotBuffer))
         self.plotLiveZ = collections.deque(np.zeros(self.livePlotBuffer))
-        
-        #load images
+
+        # Load images
         aux = Image.open(PROJECT_IMU_PIC)
         self.imuImg = ImageTk.PhotoImage(aux)
         self.imuCanvas.create_image(4, 4, image=self.imuImg, anchor="nw")
-        
-        #Set&get GUI variables
-        self.guiVariables(onlyRead = False)
-        
+
+        # Set & get GUI variables
+        self.guiVariables(onlyRead=False)
+
         callbacks = {
             "startSP": self.startSP,
             "startSM": self.startSM,
@@ -101,18 +117,20 @@ class visRV:
             "startVORS": self.startVORS,
             "startVP": self.startVP,
             "changeTemplate": self.changeTemplate,
-            
-            
             "connectIMU": self.connectIMU,
             "scanIMU": self.scanIMU,
-            "resetIMU":self.resetIMU,
+            "resetIMU": self.resetIMU,
         }
         builder.connect_callbacks(callbacks)
-        
-        #Scan for devices (to avoid IMU setup each time)
+
+        # Scan for devices
         BleScanner.start()
         time.sleep(2.0)
         BleScanner.stop()
+
+    # (rest of tu clase se queda igual)
+    # ...
+
         
     def guiVariables(self, onlyRead = True):
         preMonitor = 0
@@ -342,26 +360,30 @@ class visRV:
         config = configparser.ConfigParser()
         if not os.path.exists(PROJECT_CONFIG):
             print("Config file not found")
-            config['IMU'] = {'mac': '', 'test2': 'probando123'}
-            config.write(open(PROJECT_CONFIG, 'w'))
-            #config['testing'] = {'test': '45', 'test2': 'yes'}
+            config['IMU'] = {'mac': ''}
+            with open(PROJECT_CONFIG, 'w') as f:
+                config.write(f)
         else:
             print("Config file exists")
             config.read(PROJECT_CONFIG)
-        
-        self.imuMac = config.get("IMU","mac")
+    
+        self.imuMac = config.get("IMU", "mac", fallback="")
         if self.imuMac == "":
             print("No IMU mac, load search wizard")
-            self.mainwindow.destroy()
-            self.mainwindow.update()
+            try:
+                if self.mainwindow.winfo_exists():
+                    self.mainwindow.destroy()
+            except tk.TclError:
+                pass
             devSel = deviceSelect.deviceSelect()
             devSel.reloadMain = True
             devSel.run()
         else:
-            print(self.imuMac)
+            print(f"Using IMU MAC: {self.imuMac}")
             self.canConnect = True
-            mac_lavel = self.builder.get_variable('mac_value')
-            mac_lavel.set("IMU mac address to connect: " + self.imuMac)
+            mac_label = self.builder.get_variable('mac_value')
+            mac_label.set("IMU mac address to connect: " + self.imuMac)
+
             
     def scanIMU(self):
             if not self.isIMUConected:
@@ -643,12 +665,20 @@ class visRV:
     def on_exit(self):
         if self.isIMUConected:
             self.safeIMUDisconnect()
-        self.mainwindow.destroy()
+        try:
+            if self.mainwindow.winfo_exists():
+                self.mainwindow.destroy()
+        except tk.TclError:
+            pass
+
         
     def run(self):
         self.loadConfig()
         self.mainwindow.after(2000, self.loopEvents)
-        self.mainwindow.protocol("WM_DELETE_WINDOW", self.on_exit)
+        try:
+            self.mainwindow.protocol("WM_DELETE_WINDOW", self.on_exit)
+        except tk.TclError:
+            pass
         self.mainwindow.mainloop()
 
 if __name__ == '__main__':

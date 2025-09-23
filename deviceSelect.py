@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Spyder IDE
 
-tBPPV, code by Jorge Rey-Martinez 2023 .
+visRV, code by Jorge Rey-Martinez & HAL 2023-25.
 
 """
 
@@ -105,12 +105,19 @@ class deviceSelect:
             config = configparser.ConfigParser()
             config.read(PROJECT_CONFIG)
             config.set("IMU", "mac", self.imuAdr)
-            config.write(open(PROJECT_CONFIG, 'w'))
-            self.mainwindow.destroy()
-            self.mainwindow.update()
+            with open(PROJECT_CONFIG, 'w') as f:
+                config.write(f)
+    
+            try:
+                if self.mainwindow.winfo_exists():
+                    self.mainwindow.destroy()
+            except tk.TclError:
+                pass
+    
             if self.reloadMain:
                 newMain = visRV.visRV()
                 newMain.run()
+
             
         
 
