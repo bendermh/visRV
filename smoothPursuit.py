@@ -10,7 +10,7 @@ import random
 
 def smoothPursuit(targetSize="S", x_vel=8, y_vel=2,
                   timeChange=1, totalTime=120, monitor=0,
-                  variationRange=0.15):
+                  variationUnits=(1, 2), changeProb=0.6):
     # Check monitor availability
     if monitor > pg.display.get_num_displays():
         monitor = 0
@@ -19,14 +19,15 @@ def smoothPursuit(targetSize="S", x_vel=8, y_vel=2,
 
     main(targetSize=targetSize, x_vel=x_vel, y_vel=y_vel,
          timeChange=timeChange, totalTime=totalTime,
-         monitor=monitor, variationRange=variationRange)
+         monitor=monitor, variationUnits=variationUnits,
+         changeProb=changeProb)
 
 
 class Target:
     def __init__(self, targetSize):
         self.screen = pg.display.get_surface()
         self.targetList = ["A", "D", "E", "F", "H", "J", "K", "L",
-    "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"]
+                           "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"]
 
         self.currentText = random.choice(self.targetList)
         self.center = (self.screen.get_width() // 2,
@@ -36,6 +37,7 @@ class Target:
         self.dirX = 1
         self.dirY = 1
 
+        # Select size parameters depending on targetSize
         match targetSize:
             case "S":
                 self.typeSize = 32
@@ -61,36 +63,50 @@ class Target:
         self.labelPos.center = self.center
 
     def draw(self):
+        """Draw circle and letter on screen."""
         self.center = (self.x, self.y)
         pg.draw.circle(self.screen, (255, 255, 255),
                        self.center, self.radius, width=self.border)
         self.labelPos.center = self.center
         self.screen.blit(self.label, self.labelPos)
 
-    def move(self, vx, vy, base_x_vel, base_y_vel, variationRange):
-        min_speed = 1.5  # minimum velocity to avoid sticking at borders
+    def move(self, vx, vy, base_x_vel, base_y_vel, variationUnits, changeProb):
+        """
+        Update target position and handle wall collisions.
+
+        vx, vy: current velocities
+        base_x_vel, base_y_vel: original velocities from parameters
+        variationUnits: absolute range of change (tuple, e.g. (1, 2))
+        changeProb: probability that speed changes on each rebound
+        """
+        min_speed = 1.0  # ensure target never gets stuck at borders
 
         hitX = (self.x - self.radius) <= 0 or (self.x + self.radius) >= self.screen.get_width()
         hitY = (self.y - self.radius) <= 0 or (self.y + self.radius) >= self.screen.get_height()
 
         if hitX:
             self.dirX *= -1
-            if base_x_vel != 0 and base_y_vel != 0:
-                factor_x = random.uniform(1 - variationRange, 1 + variationRange)
-                vx = max(abs(base_x_vel * factor_x), min_speed) * (1 if vx >= 0 else -1)
+            # Only change velocity with a certain probability
+            if random.random() < changeProb:
+                delta = random.randint(variationUnits[0], variationUnits[1])
+                vx = max(abs(base_x_vel + random.choice([-delta, delta])),
+                         min_speed) * (1 if vx >= 0 else -1)
 
         if hitY:
             self.dirY *= -1
-            if base_x_vel != 0 and base_y_vel != 0:
-                factor_y = random.uniform(1 - variationRange, 1 + variationRange)
-                vy = max(abs(base_y_vel * factor_y), min_speed) * (1 if vy >= 0 else -1)
+            if random.random() < changeProb:
+                delta = random.randint(variationUnits[0], variationUnits[1])
+                vy = max(abs(base_y_vel + random.choice([-delta, delta])),
+                         min_speed) * (1 if vy >= 0 else -1)
 
+        # Update position with new or maintained velocities
         self.x += self.dirX * vx
         self.y += self.dirY * vy
 
         return vx, vy
 
     def changeText(self):
+        """Pick a new random letter for the target."""
         self.currentText = random.choice(self.targetList)
         self.label = self.font.render(self.currentText, True, (255, 255, 255))
         self.labelPos = self.label.get_rect()
@@ -100,7 +116,7 @@ class Target:
 
 def main(targetSize="S", x_vel=8, y_vel=2,
          timeChange=1, totalTime=120, monitor=0,
-         variationRange=0.2):
+         variationUnits=(1, 2), changeProb=0.6):
     pg.init()
     screen = pg.display.set_mode(
         size=(1920, 1080),
@@ -108,7 +124,7 @@ def main(targetSize="S", x_vel=8, y_vel=2,
         display=monitor,
         vsync=1
     )
-    fps = 120  # higher refresh for smoother motion
+    fps = 60  # high refresh rate for smooth motion
     pg.mouse.set_visible(False)
 
     # Prepare target
@@ -143,11 +159,8 @@ def main(targetSize="S", x_vel=8, y_vel=2,
 
         # Move and draw
         x_vel, y_vel = game_target.move(
-            x_vel, y_vel, base_x_vel, base_y_vel, variationRange)
+            x_vel, y_vel, base_x_vel, base_y_vel, variationUnits, changeProb)
         game_target.draw()
-
-        # Print position every frame
-        #print(f"Position: X={game_target.x}, Y={game_target.y}")
 
         pg.display.flip()
 

@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<interface version="1.4" author="PygubuDesigner 0.41.1">
+<interface version="1.4" author="PygubuDesigner 0.41.4">
   <project>
     <settings />
     <customwidgets />
   </project>
   <object class="tk.Toplevel" id="mainWindow" named="True">
-    <property name="geometry">1280x768</property>
+    <property name="geometry">1320x780</property>
     <property name="resizable">none</property>
     <property name="title" translatable="yes">visVR: An instrumented visuo-vestibular and VOR exercises assistant</property>
     <child>
@@ -907,6 +907,19 @@ Rehabilitation</property>
                 </layout>
               </object>
             </child>
+            <child>
+              <object class="ttk.Label" id="label43">
+                <property name="font">{Courier New} 10 {}</property>
+                <property name="foreground">#0000a0</property>
+                <property name="text" translatable="yes">Press space to toggle
+fixation point</property>
+                <layout manager="pack">
+                  <property name="ipadx">2</property>
+                  <property name="ipady">2</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
           </object>
         </child>
         <child>
@@ -1656,7 +1669,9 @@ during exercise</property>
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
                 <property name="text" translatable="yes">Press space reset IMU
-during exercise</property>
+during exercise
+Press R key to reverse
+direction</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
                   <property name="ipady">2</property>

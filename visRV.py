@@ -388,9 +388,8 @@ class visRV:
     def scanIMU(self):
             if not self.isIMUConected:
                 self.mainwindow.destroy()
-                #self.mainwindow.update() #not sure what this line means !
                 devSel = deviceSelect.deviceSelect()
-                devSel.reloadMain = True #this will make te app to open when finish is over
+                devSel.reloadMain = True
                 devSel.run()
             
     def connectIMU(self):
@@ -592,8 +591,8 @@ class visRV:
 
         elif template == "Hard":
             self.builder.get_variable("timeDurationSP").set(120)
-            self.builder.get_variable("horizontalSpeedSP").set(24)
-            self.builder.get_variable("verticalSpeedSP").set(16)
+            self.builder.get_variable("horizontalSpeedSP").set(18)
+            self.builder.get_variable("verticalSpeedSP").set(14)
             self.builder.get_variable("targetChangeSP").set(0.75)
             self.builder.get_variable("targetSizeSP").set("Medium")
 
@@ -627,8 +626,8 @@ class visRV:
         
         elif template == "Very hard":
             self.builder.get_variable("timeDurationSP").set(180)
-            self.builder.get_variable("horizontalSpeedSP").set(26)
-            self.builder.get_variable("verticalSpeedSP").set(18)
+            self.builder.get_variable("horizontalSpeedSP").set(18)
+            self.builder.get_variable("verticalSpeedSP").set(14)
             self.builder.get_variable("targetChangeSP").set(0.5)
             self.builder.get_variable("targetSizeSP").set("Small")
 

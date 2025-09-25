@@ -8,7 +8,7 @@ import pygame as pg
 
 
 def okn(targetSize="L", vel=20, direction="D", totalTime=120, monitor=0,
-        fixation_radius=18):
+        fixation_radius=10):
     # Validate monitor index
     if monitor > pg.display.get_num_displays():
         monitor = 0
@@ -82,7 +82,7 @@ class OKNBars:
 
 
 def main(targetSize, vel, direction, totalTime, monitor,
-         fixation_radius=40):
+         fixation_radius=10):
     pg.init()
     screen = pg.display.set_mode(
         size=(1920, 1080),
@@ -124,6 +124,10 @@ def main(targetSize, vel, direction, totalTime, monitor,
                     going = False
                 elif event.key == pg.K_SPACE:
                     show_fixation = not show_fixation
+                    if show_fixation:
+                        print("Fixation point ON")
+                    else:
+                        print("Fixation point OFF")
 
         # Clear screen
         screen.blit(background, (0, 0))
