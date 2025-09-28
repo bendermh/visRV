@@ -127,9 +127,9 @@ class Target():
     
         # Configure fusion mode and ranges
         libmetawear.mbl_mw_sensor_fusion_set_mode(
-            self.imuDevice.board, SensorFusionMode.IMU_PLUS)
+            self.imuDevice.board, SensorFusionMode.NDOF)
         libmetawear.mbl_mw_sensor_fusion_set_acc_range(
-            self.imuDevice.board, SensorFusionAccRange._4G)
+            self.imuDevice.board, SensorFusionAccRange._2G)
         libmetawear.mbl_mw_sensor_fusion_set_gyro_range(
             self.imuDevice.board, SensorFusionGyroRange._2000DPS)
         libmetawear.mbl_mw_sensor_fusion_write_config(self.imuDevice.board)

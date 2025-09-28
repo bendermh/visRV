@@ -6,6 +6,8 @@ visRV, code by Jorge Rey-Martinez & HAL 2023-25.
 
 """
 
+import os
+import sys
 import pathlib
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -19,9 +21,20 @@ import six
 import visRV
 import configparser
 
+
+
+# ========== Resource path helper ==========
+def resource_path(relative_path):
+    """ Get absolute path to resource (works for dev and PyInstaller) """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
+# ========== Project resources ==========
 PROJECT_PATH = pathlib.Path(__file__).parent
-PROJECT_UI = PROJECT_PATH /"GUI"/ "deviceSelect.ui"
-PROJECT_CONFIG = PROJECT_PATH /"config.ini"
+PROJECT_UI = resource_path(os.path.join("GUI", "deviceSelect.ui"))
+PROJECT_CONFIG = resource_path("config.ini")
+PROJECT_ICON = resource_path("GUI/VR_icon.ico")
 
 class deviceSelect:
     def __init__(self, master=None):
@@ -38,6 +51,10 @@ class deviceSelect:
 
         # 3: Create the mainwindow
         self.mainwindow = builder.get_object('mainwindow', master)
+        try:
+            self.mainwindow.iconbitmap(PROJECT_ICON)
+        except Exception as e:
+            print(f"Warning: could not set icon ({e})")
         self.mainwindow.focus()
         # 4: Connect callbacks
         builder.connect_callbacks(self)
