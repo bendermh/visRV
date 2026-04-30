@@ -6,17 +6,27 @@ Author: Jorge Rey-Martinez & HAL
 
 import pygame as pg
 import random
+from display_utils import fullscreen_mode
+
+
+def varied_speed(base_speed, variationUnits):
+    """Return a subtle speed variation around the configured base speed."""
+    base_speed = abs(float(base_speed))
+    if base_speed == 0:
+        return 0
+
+    low, high = sorted(variationUnits)
+    if high <= 1:
+        delta = base_speed * random.uniform(low, high)
+    else:
+        delta = random.uniform(low, high)
+
+    return max(base_speed + random.choice([-delta, delta]), 0.1)
 
 
 def smoothPursuit(targetSize="S", x_vel=8, y_vel=2,
                   timeChange=1, totalTime=120, monitor=0,
-                  variationUnits=(1, 2), changeProb=0.6):
-    # Check monitor availability
-    if monitor > pg.display.get_num_displays():
-        monitor = 0
-        print("Monitor is out of range, autoreset to 0. Detected monitors: " +
-              str(pg.display.get_num_displays()))
-
+                  variationUnits=(0.10, 0.15), changeProb=0.6):
     main(targetSize=targetSize, x_vel=x_vel, y_vel=y_vel,
          timeChange=timeChange, totalTime=totalTime,
          monitor=monitor, variationUnits=variationUnits,
@@ -70,38 +80,46 @@ class Target:
         self.labelPos.center = self.center
         self.screen.blit(self.label, self.labelPos)
 
+    def bounce_axis(self, pos, speed, direction, min_pos, max_pos,
+                    base_speed, variationUnits, changeProb):
+        if speed == 0:
+            return pos, speed, direction
+
+        next_pos = pos + direction * speed
+        if next_pos < min_pos:
+            next_pos = min_pos
+            direction = 1
+            if random.random() < changeProb:
+                speed = varied_speed(base_speed, variationUnits)
+        elif next_pos > max_pos:
+            next_pos = max_pos
+            direction = -1
+            if random.random() < changeProb:
+                speed = varied_speed(base_speed, variationUnits)
+
+        return next_pos, speed, direction
+
     def move(self, vx, vy, base_x_vel, base_y_vel, variationUnits, changeProb):
         """
         Update target position and handle wall collisions.
 
         vx, vy: current velocities
         base_x_vel, base_y_vel: original velocities from parameters
-        variationUnits: absolute range of change (tuple, e.g. (1, 2))
+        variationUnits: fractional range by default (e.g. 0.10-0.15), or
+                        absolute units if values are greater than 1
         changeProb: probability that speed changes on each rebound
         """
-        min_speed = 1.0  # ensure target never gets stuck at borders
+        min_x = self.radius
+        max_x = self.screen.get_width() - self.radius
+        min_y = self.radius
+        max_y = self.screen.get_height() - self.radius
 
-        hitX = (self.x - self.radius) <= 0 or (self.x + self.radius) >= self.screen.get_width()
-        hitY = (self.y - self.radius) <= 0 or (self.y + self.radius) >= self.screen.get_height()
-
-        if hitX:
-            self.dirX *= -1
-            # Only change velocity with a certain probability
-            if random.random() < changeProb:
-                delta = random.randint(variationUnits[0], variationUnits[1])
-                vx = max(abs(base_x_vel + random.choice([-delta, delta])),
-                         min_speed) * (1 if vx >= 0 else -1)
-
-        if hitY:
-            self.dirY *= -1
-            if random.random() < changeProb:
-                delta = random.randint(variationUnits[0], variationUnits[1])
-                vy = max(abs(base_y_vel + random.choice([-delta, delta])),
-                         min_speed) * (1 if vy >= 0 else -1)
-
-        # Update position with new or maintained velocities
-        self.x += self.dirX * vx
-        self.y += self.dirY * vy
+        self.x, vx, self.dirX = self.bounce_axis(
+            self.x, vx, self.dirX, min_x, max_x,
+            base_x_vel, variationUnits, changeProb)
+        self.y, vy, self.dirY = self.bounce_axis(
+            self.y, vy, self.dirY, min_y, max_y,
+            base_y_vel, variationUnits, changeProb)
 
         return vx, vy
 
@@ -116,14 +134,9 @@ class Target:
 
 def main(targetSize="S", x_vel=8, y_vel=2,
          timeChange=1, totalTime=120, monitor=0,
-         variationUnits=(1, 2), changeProb=0.6):
+         variationUnits=(0.10, 0.15), changeProb=0.6):
     pg.init()
-    screen = pg.display.set_mode(
-        size=(1920, 1080),
-        flags=pg.FULLSCREEN | pg.NOFRAME | pg.DOUBLEBUF,
-        display=monitor,
-        vsync=1
-    )
+    screen = fullscreen_mode(monitor)
     fps = 60  # high refresh rate for smooth motion
     pg.mouse.set_visible(False)
 
@@ -131,8 +144,10 @@ def main(targetSize="S", x_vel=8, y_vel=2,
     game_target = Target(targetSize)
 
     # Store base velocities
-    base_x_vel = x_vel
-    base_y_vel = y_vel
+    base_x_vel = abs(float(x_vel))
+    base_y_vel = abs(float(y_vel))
+    x_vel = base_x_vel
+    y_vel = base_y_vel
 
     # Events
     TEXTCHANGE_EVENT = pg.USEREVENT + 1

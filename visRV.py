@@ -15,19 +15,16 @@ import tkinter.ttk as ttk
 from tkinter import messagebox
 import pygubu
 import time
+import threading
 from PIL import Image, ImageTk
-from mbientlab.metawear import MetaWear, libmetawear, parse_value
-from mbientlab.metawear.cbindings import *
 from mbientlab.warble import *
-import six
-import collections
-import numpy as np
-from scipy.spatial.transform import Rotation
 import smoothPursuit
 import saccades
 import okn
 import vor
 import vp
+import display_utils
+from imu_controller import IMUController
 
 
 # ========== Resource path helper ==========
@@ -68,38 +65,34 @@ class visRV:
         self.imuCanvas = builder.get_object("imuCanvas")
         self.scanButton = builder.get_object("scanButton")
         self.connectButton = builder.get_object("connectButton")
+        self.monitorSelector = builder.get_object("monitorSelector")
         self.startSPButton = builder.get_object("spStartButton")
         self.startSMButton = builder.get_object("smStartButton")
         self.startOKButton = builder.get_object("okStartButton")
         self.startVORButton = builder.get_object("vorStartButton")
         self.startVORSButton = builder.get_object("vorsStartButton")
         self.startVPButton = builder.get_object("vpStartButton")
-        # IMU Callback
-        self.readIMU = FnVoid_VoidP_DataP(self.streamIMU)
 
         # Other variables
         self.imuMac = ""
         self.canConnect = False
         self.isIMUConected = False
+        self.isClosing = False
         self.delayEvents = 150
         self.imuDevice = None
-        self.signal = None
-        self.rawSample = None
-        self.sample = None
+        self.imuController = None
         self.timeZero = time.time()
-        self.timeRecord = None
-        self.timeConnect = None
-        self.timeNow = None
-        self.timeLast = None
-        self.samplingInterval = 0.01
-        self.timeIMUSetup = 2.1
-        self.livePlotBuffer = 500
-        self.lPlotYmin = -360
-        self.lPlotYmax = 360
-        self.plotLiveTime = collections.deque(np.zeros(self.livePlotBuffer))
-        self.plotLiveX = collections.deque(np.zeros(self.livePlotBuffer))
-        self.plotLiveY = collections.deque(np.zeros(self.livePlotBuffer))
-        self.plotLiveZ = collections.deque(np.zeros(self.livePlotBuffer))
+        self.timeLastBattery = 0
+
+        # Runtime IMU controls
+        self.imuControls = self.connectButton.master
+        self.batteryLabel = ttk.Label(self.imuControls, text="Battery: --")
+        self.batteryLabel.pack(side="top", pady=10)
+        self.calibrateButton = ttk.Button(
+            self.imuControls,
+            text="Calibrate IMU",
+            command=self.calibrateIMU)
+        self.calibrateButton.pack(side="top", pady=5)
 
         # Load images
         aux = Image.open(PROJECT_IMU_PIC)
@@ -107,6 +100,7 @@ class visRV:
         self.imuCanvas.create_image(4, 4, image=self.imuImg, anchor="nw")
 
         # Set & get GUI variables
+        self.refreshMonitorSelector()
         self.guiVariables(onlyRead=False)
 
         callbacks = {
@@ -291,6 +285,26 @@ class visRV:
            self.builder.get_variable("templateValue").set("Default")
            
            self.guiVariables()
+
+    def refreshMonitorSelector(self):
+        options = display_utils.monitor_options()
+        current = self.builder.get_variable("monitorSelected").get()
+        if current not in options:
+            current = options[0]
+
+        try:
+            self.monitorSelector.set_menu(current, *options)
+        except AttributeError:
+            menu = self.monitorSelector["menu"]
+            menu.delete(0, "end")
+            for option in options:
+                menu.add_command(
+                    label=option,
+                    command=tk._setit(
+                        self.builder.get_variable("monitorSelected"), option))
+
+        self.builder.get_variable("monitorSelected").set(current)
+        print(f"Monitor options detected by pygame: {', '.join(options)}")
     
     def startSP(self):
         self.guiVariables()
@@ -313,42 +327,30 @@ class visRV:
     def startVOR(self):
         if self.isIMUConected:
             self.guiVariables()
-            self.safeIMUDisconnect()
             self.mainwindow.withdraw()
-            vor.vor(self.targetSizeVOR,self.imuMac,True,self.verticalRangeVOR,self.horizontalRangeVOR,self.targetChangeVOR,self.timeDurationVOR,self.monitorSelected)
+            vor.vor(self.targetSizeVOR,self.imuController,True,self.verticalRangeVOR,self.horizontalRangeVOR,self.targetChangeVOR,self.timeDurationVOR,self.monitorSelected)
             time.sleep(2)
             self.mainwindow.deiconify()
-            self.canConnect = True
-            time.sleep(2)
-            self.connectIMU()
         else:
             messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
             
     def startVORS(self):
          if self.isIMUConected:
              self.guiVariables()
-             self.safeIMUDisconnect()
              self.mainwindow.withdraw()
-             vor.vor(self.targetSizeVORS,self.imuMac,False,self.verticalRangeVORS,self.horizontalRangeVORS,self.targetChangeVORS,self.timeDurationVORS,self.monitorSelected)
+             vor.vor(self.targetSizeVORS,self.imuController,False,self.verticalRangeVORS,self.horizontalRangeVORS,self.targetChangeVORS,self.timeDurationVORS,self.monitorSelected)
              time.sleep(2)
              self.mainwindow.deiconify()
-             self.canConnect = True
-             time.sleep(2)
-             self.connectIMU()
          else:
              messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
     
     def startVP(self):
          if self.isIMUConected:
              self.guiVariables()
-             self.safeIMUDisconnect()
              self.mainwindow.withdraw()
-             vp.vp(self.targetSizeVP,self.imuMac,False,self.horizontalRangeVP,self.targetStillVP,self.timeDurationVP,self.monitorSelected)
+             vp.vp(self.targetSizeVP,self.imuController,False,self.horizontalRangeVP,self.targetStillVP,self.timeDurationVP,self.monitorSelected)
              time.sleep(2)
              self.mainwindow.deiconify()
-             self.canConnect = True
-             time.sleep(2)
-             self.connectIMU()
          else:
              messagebox.showinfo("Warning", "Unable to connec to with IMU, try to connect or setup a new IMU")
     
@@ -370,6 +372,7 @@ class visRV:
         self.imuMac = config.get("IMU", "mac", fallback="")
         if self.imuMac == "":
             print("No IMU mac, load search wizard")
+            self.isClosing = True
             try:
                 if self.mainwindow.winfo_exists():
                     self.mainwindow.destroy()
@@ -387,6 +390,7 @@ class visRV:
             
     def scanIMU(self):
             if not self.isIMUConected:
+                self.isClosing = True
                 self.mainwindow.destroy()
                 devSel = deviceSelect.deviceSelect()
                 devSel.reloadMain = True
@@ -394,19 +398,15 @@ class visRV:
             
     def connectIMU(self):
         if self.canConnect:
-            self.imuDevice = MetaWear(self.imuMac)
-            try:
-                self.imuDevice.connect()
-            except:
-                print("IMU connection error")
-            time.sleep(2.5)
+            self.imuController = IMUController(self.imuMac)
+            connected = self.imuController.connect()
+            self.imuDevice = self.imuController.device
             self.canConnect = False
-            if self.imuDevice.is_connected:
-                print("IMU connected")
+            if connected:
                 self.scanButton.state(["disabled"])
                 self.connectButton.state(["disabled"])
                 self.isIMUConected = True
-                self.configureIMU()
+                self.batteryLabel.configure(text=self.imuController.battery_text())
             else:
                 print("IMU is NOT connected")
                 self.isIMUConected = False
@@ -415,30 +415,36 @@ class visRV:
                 
         else:
             print("IMU is already connected")
-    
-    def configureIMU(self):
-        if self.imuDevice.is_connected:
-            self.timeConnect = time.time() 
-            self.timeLast = time.time()
-            print("Setting up IMU...")
-            # confiure connection
-            libmetawear.mbl_mw_settings_set_connection_parameters(self.imuDevice.board, 7.5, 7.5, 0, 6000)
-            time.sleep(1.5)
-            # setup quaternion
-            libmetawear.mbl_mw_sensor_fusion_set_mode(self.imuDevice.board, SensorFusionMode.NDOF);
-            libmetawear.mbl_mw_sensor_fusion_set_acc_range(self.imuDevice.board, SensorFusionAccRange._8G)
-            libmetawear.mbl_mw_sensor_fusion_set_gyro_range(self.imuDevice.board, SensorFusionGyroRange._2000DPS)
-            libmetawear.mbl_mw_sensor_fusion_write_config(self.imuDevice.board)
-            time.sleep(0.5)
-            # get quat signal and subscribe
-            self.signal = libmetawear.mbl_mw_sensor_fusion_get_data_signal(self.imuDevice.board, SensorFusionData.QUATERNION);
-            libmetawear.mbl_mw_datasignal_subscribe(self.signal, None, self.readIMU)
-            # start acc, gyro, mag
-            libmetawear.mbl_mw_sensor_fusion_enable_data(self.imuDevice.board, SensorFusionData.QUATERNION);
-            libmetawear.mbl_mw_sensor_fusion_start(self.imuDevice.board);
-            print("IMU setup done.")
-            time.sleep(0.25)
 
+    def calibrateIMU(self):
+        if not self.isIMUConected or self.imuController is None:
+            messagebox.showinfo("Warning", "Connect IMU before calibration")
+            return
+
+        answer = messagebox.askokcancel(
+            "IMU calibration",
+            "Move the IMU slowly through different orientations until the "
+            "sensor reaches high calibration. Continue?")
+        if not answer:
+            return
+
+        self.calibrateButton.state(["disabled"])
+        worker = threading.Thread(target=self._calibrateIMUWorker, daemon=True)
+        worker.start()
+
+    def _calibrateIMUWorker(self):
+        ok = self.imuController.run_calibration_wizard()
+        self.mainwindow.after(0, lambda: self._calibrateIMUDone(ok))
+
+    def _calibrateIMUDone(self, ok):
+        self.calibrateButton.state(["!disabled"])
+        if ok:
+            messagebox.showinfo("IMU calibration", "IMU calibration completed")
+        else:
+            messagebox.showinfo(
+                "IMU calibration",
+                "IMU calibration did not complete. Try again with slower, "
+                "wider movements.")
     
     def resetIMU(self):
         answer = messagebox.askokcancel("Be aware","Reset procedure will lost IMU callibration, do not continue if you do not know to callibrate the IMU. Do you want to continue ?")
@@ -448,66 +454,42 @@ class visRV:
         if self.isIMUConected:
             answer = messagebox.askokcancel("Be aware","Reset procedure will close the program and data will be lost. Do you want to continue ?")
             if answer:
-                print("Erase logger, state, and macros")
+                if self.imuController:
+                    self.imuController.factory_reset()
                 self.isIMUConected = False
-                # stop
-                libmetawear.mbl_mw_sensor_fusion_stop(self.imuDevice.board)
-                libmetawear.mbl_mw_datasignal_unsubscribe(self.signal)
-                time.sleep(0.5)
-                #reset procedure
-                libmetawear.mbl_mw_logging_stop(self.imuDevice.board)
-                # Clear the logger of saved entries
-                libmetawear.mbl_mw_logging_clear_entries(self.imuDevice.board)
-                # Remove all macros on the flash memory
-                libmetawear.mbl_mw_macro_erase_all(self.imuDevice.board)
-                # Restarts the board after performing garbage collection
-                libmetawear.mbl_mw_debug_reset_after_gc(self.imuDevice.board)
-                libmetawear.mbl_mw_debug_disconnect(self.imuDevice.board)
                 print("IMU reseted, app will close")
+                self.isClosing = True
                 time.sleep(10)
-                self.imuDevice.disconnect()
                 self.mainwindow.destroy()
         else:
             print("No IMU, no reset, man")
                     
 
-    
-    def streamIMU(self, ctx, data):
-        self.timeNow = time.time()
-        if (self.timeNow-self.timeLast) > self.samplingInterval: 
-            if self.isIMUConected:
-                if (self.timeLast-self.timeConnect) > self.timeIMUSetup: # add a little delay to stream data to avoid setup empty samples
-                    self.rawSample = parse_value(data)
-                    euler = self.quat_to_euler(self.rawSample.w,self.rawSample.x, self.rawSample.y,self.rawSample.z)
-                    self.sample = ((self.timeLast-self.timeConnect)-self.timeIMUSetup,euler)
-            self.timeLast = time.time()
-        
-    def quat_to_euler(self, w, x, y, z):
-        quater = [x,y,z,w]
-        rot = Rotation.from_quat(quater)
-        euler = rot.as_euler('xyz', degrees = True)
-        return euler
-    
     def loopEvents(self):
+        if self.isClosing:
+            return
         #print("Event " + str(time.localtime().tm_sec))
         if self.isIMUConected:
             self.imuCanvas.configure(bg='green')
+            if self.imuController:
+                self.batteryLabel.configure(text=self.imuController.battery_text())
+                if time.time() - self.timeLastBattery > 60:
+                    self.imuController.request_battery()
+                    self.timeLastBattery = time.time()
         else:
             self.imuCanvas.configure(bg='red')
-        self.mainwindow.after(self.delayEvents, self.loopEvents)
+            self.batteryLabel.configure(text="Battery: --")
+        try:
+            self.mainwindow.after(self.delayEvents, self.loopEvents)
+        except tk.TclError:
+            pass
     
     def safeIMUDisconnect(self):            
-        if not self.imuDevice is None:
-                print("Closing IMU connection...")
-                #stop
-                libmetawear.mbl_mw_sensor_fusion_stop(self.imuDevice.board)
-                libmetawear.mbl_mw_datasignal_unsubscribe(self.signal)
-                time.sleep(0.5)
-                # disconnect
-                self.imuDevice.disconnect()
-                time.sleep(3)
+        if self.imuController is not None:
+                self.imuController.disconnect()
                 self.isIMUConected = False
-                print("IMU connection closed")
+                self.imuController = None
+                self.imuDevice = None
                 
         else:
                 print("No IMU connection to close")
@@ -662,6 +644,7 @@ class visRV:
         self.guiVariables()
                 
     def on_exit(self):
+        self.isClosing = True
         if self.isIMUConected:
             self.safeIMUDisconnect()
         try:
@@ -673,6 +656,11 @@ class visRV:
         
     def run(self):
         self.loadConfig()
+        try:
+            if not self.mainwindow.winfo_exists():
+                return
+        except tk.TclError:
+            return
         self.mainwindow.after(2000, self.loopEvents)
         try:
             self.mainwindow.protocol("WM_DELETE_WINDOW", self.on_exit)

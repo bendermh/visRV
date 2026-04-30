@@ -88,31 +88,39 @@ class deviceSelect:
         self.textConsole.insert("0.0", "Trying to connect IMU: " + self.imuAdr + "\nIf there is not response check device status \n(battery) and close this window...\n\n")
         self.textConsole.update()
         device = MetaWear(self.imuAdr)
-        device.connect()
-        self.textConsole.insert("0.0","Connected to IMU: "+ device.address +"\nIMU device will blink: \n-If is not the desired device select other \ndevice and test it again. \n-If it is correct close this window\n\n")
-        self.textConsole.configure(state='disabled')
-        self.textConsole.update()
-        # create led pattern
-        
-        pattern= LedPattern(delay_time_ms= 400, repeat_count= 10)
-        libmetawear.mbl_mw_led_load_preset_pattern(byref(pattern), LedPreset.BLINK)
-        libmetawear.mbl_mw_led_write_pattern(device.board, byref(pattern), LedColor.BLUE)
+        try:
+            device.connect()
+            self.textConsole.insert("0.0","Connected to IMU: "+ device.address +"\nIMU device will blink: \n-If is not the desired device select other \ndevice and test it again. \n-If it is correct close this window\n\n")
+            self.textConsole.configure(state='disabled')
+            self.textConsole.update()
+            # create led pattern
+            
+            pattern= LedPattern(delay_time_ms= 400, repeat_count= 10)
+            libmetawear.mbl_mw_led_load_preset_pattern(byref(pattern), LedPreset.BLINK)
+            libmetawear.mbl_mw_led_write_pattern(device.board, byref(pattern), LedColor.BLUE)
 
-        # play the pattern
-        libmetawear.mbl_mw_led_play(device.board)
+            # play the pattern
+            libmetawear.mbl_mw_led_play(device.board)
 
-        # wait 5s
-        time.sleep(4.0)
+            # wait 5s
+            time.sleep(4.0)
 
-        # remove the led pattern and stop playing
-        libmetawear.mbl_mw_led_stop_and_clear(device.board)
-        time.sleep(2.0)
-
-        # disconnect
-        device.disconnect()
-        time.sleep(1.0)
-        print("Closed")
-        self.canSave = True
+            # remove the led pattern and stop playing
+            libmetawear.mbl_mw_led_stop_and_clear(device.board)
+            time.sleep(2.0)
+            self.canSave = True
+        except Exception as e:
+            self.textConsole.insert("0.0", "Unable to connect/test IMU: " + str(e) + "\n\n")
+            self.textConsole.configure(state='disabled')
+            self.textConsole.update()
+        finally:
+            try:
+                if device.is_connected:
+                    device.disconnect()
+                    time.sleep(1.0)
+            except Exception as e:
+                print(f"Warning: could not close test IMU connection ({e})")
+            print("Closed")
     
     def saveExit(self):
         if not self.canSave:

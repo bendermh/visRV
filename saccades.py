@@ -6,15 +6,11 @@ Author: Jorge Rey-Martinez & HAL
 
 import pygame as pg
 import random
+from display_utils import fullscreen_mode
 
 
 def saccades(targetSize="M", x_vel=0, y_vel=1920,
              timeChange=1.0, totalTime=120, monitor=0):
-    if monitor > pg.display.get_num_displays():
-        monitor = 0
-        print("Monitor is out of range, autoreset to 0. Detected monitors: " +
-              str(pg.display.get_num_displays()))
-
     main(targetSize=targetSize, x_vel=x_vel, y_vel=y_vel,
          timeChange=timeChange, totalTime=totalTime, monitor=monitor)
 
@@ -63,14 +59,16 @@ class Target:
         self.labelPos.center = self.center
         self.screen.blit(self.label, self.labelPos)
 
-    def changeTarget(self, dis_x, dis_y):
+    def changeTarget(self, dis_x, dis_y, horizontalRange, verticalRange):
         self.currentText = random.choice(self.targetList)
         self.label = self.font.render(self.currentText, True, (255, 255, 255))
         self.labelPos = self.label.get_rect()
 
-        # Ensure target fully inside screen
-        self.x = random.uniform(self.radius, dis_x - self.radius)
-        self.y = random.uniform(self.radius, dis_y - self.radius)
+        # A range of 0 locks that axis, allowing pure horizontal/vertical work.
+        if horizontalRange > 0:
+            self.x = random.uniform(self.radius, dis_x - self.radius)
+        if verticalRange > 0:
+            self.y = random.uniform(self.radius, dis_y - self.radius)
 
         self.labelPos.center = (self.x, self.y)
         print("Target:", self.currentText)
@@ -78,12 +76,7 @@ class Target:
 
 def main(targetSize, x_vel, y_vel, timeChange, totalTime, monitor):
     pg.init()
-    screen = pg.display.set_mode(
-        size=(1920, 1080),
-        flags=pg.FULLSCREEN | pg.NOFRAME | pg.DOUBLEBUF,
-        display=monitor,
-        vsync=1
-    )
+    screen = fullscreen_mode(monitor)
     fps = 60
     pg.mouse.set_visible(False)
 
@@ -110,7 +103,8 @@ def main(targetSize, x_vel, y_vel, timeChange, totalTime, monitor):
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 going = False
             if event.type == TEXTCHANGE_EVENT:
-                game_target.changeTarget(screen.get_width(), screen.get_height())
+                game_target.changeTarget(
+                    screen.get_width(), screen.get_height(), x_vel, y_vel)
 
         screen.blit(background, (0, 0))
         game_target.draw()

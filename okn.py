@@ -5,16 +5,11 @@ Author: Jorge Rey-Martinez & HAL
 """
 
 import pygame as pg
+from display_utils import fullscreen_mode
 
 
 def okn(targetSize="L", vel=20, direction="D", totalTime=120, monitor=0,
         fixation_radius=10):
-    # Validate monitor index
-    if monitor > pg.display.get_num_displays():
-        monitor = 0
-        print("Monitor is out of range, autoreset to 0. Detected monitors: " +
-              str(pg.display.get_num_displays()))
-
     # Map target size to bar width (border)
     match targetSize:
         case "S":
@@ -84,12 +79,7 @@ class OKNBars:
 def main(targetSize, vel, direction, totalTime, monitor,
          fixation_radius=10):
     pg.init()
-    screen = pg.display.set_mode(
-        size=(1920, 1080),
-        flags=pg.FULLSCREEN | pg.NOFRAME | pg.DOUBLEBUF,
-        display=monitor,
-        vsync=1
-    )
+    screen = fullscreen_mode(monitor)
     fps = 60
     pg.mouse.set_visible(False)
 
