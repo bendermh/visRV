@@ -12,7 +12,6 @@ from threading import Event
 
 from mbientlab.metawear import MetaWear, libmetawear, parse_value
 from mbientlab.metawear.cbindings import *
-from scipy.spatial.transform import Rotation
 
 
 class IMUController:
@@ -39,7 +38,7 @@ class IMUController:
 
         self.sample = None
         self.raw_sample = None
-        self.euler = (0.0, 0.0, 0.0)
+        self.euler = None
         self.time_connect = None
         self.time_last = None
         self.sampling_interval = 0.01
@@ -109,11 +108,11 @@ class IMUController:
             time.sleep(0.5)
 
             self.signal = libmetawear.mbl_mw_sensor_fusion_get_data_signal(
-                self.device.board, SensorFusionData.QUATERNION)
+                self.device.board, SensorFusionData.EULER_ANGLE)
             libmetawear.mbl_mw_datasignal_subscribe(
                 self.signal, None, self.read_orientation)
             libmetawear.mbl_mw_sensor_fusion_enable_data(
-                self.device.board, SensorFusionData.QUATERNION)
+                self.device.board, SensorFusionData.EULER_ANGLE)
             libmetawear.mbl_mw_sensor_fusion_start(self.device.board)
 
             self.configured = True
@@ -146,9 +145,7 @@ class IMUController:
         if self.connected and self.time_connect:
             if (self.time_last - self.time_connect) > self.time_imu_setup:
                 self.raw_sample = parse_value(data)
-                self.euler = self.quaternion_to_euler(
-                    self.raw_sample.w, self.raw_sample.x,
-                    self.raw_sample.y, self.raw_sample.z)
+                self.euler = self.raw_sample
                 self.sample = (
                     (self.time_last - self.time_connect) - self.time_imu_setup,
                     self.euler)
@@ -156,19 +153,16 @@ class IMUController:
 
         self.time_last = time.time()
 
-    def quaternion_to_euler(self, w, x, y, z):
-        rotation = Rotation.from_quat([x, y, z, w])
-        euler = rotation.as_euler('xyz', degrees=True)
-        return (float(euler[0]), float(euler[1]), float(euler[2]))
-
     def _update_head_positions(self):
-        roll, pitch, yaw = self.euler
+        if self.euler is None:
+            return
+
         self.prev_head_position_h = self.head_position_h
-        head_h = round(yaw + 90.0)
+        head_h = round(self.euler.yaw + 90.0)
         if head_h > 360:
             head_h -= 360
         self.head_position_h = head_h + self.bias_h
-        self.head_position_v = round(pitch * -1 + 90.0) + self.bias_v
+        self.head_position_v = round(self.euler.pitch * -1 + 90.0) + self.bias_v
 
     def set_bias(self):
         self.bias_h += 90 - self.head_position_h
