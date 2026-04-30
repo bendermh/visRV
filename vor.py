@@ -30,7 +30,7 @@ class Target():
     def __init__(self, targetSize, imuController, vorTrain, vRange, hRange):
         self.screen = pg.display.get_surface()
         self.imu = imuController
-        self.reverse = vorTrain
+        self.reverse = not vorTrain
         self.headPositionH = 90.0
         self.headPositionV = 90.0
         self.screenPositionH = self.screen.get_width() // 2

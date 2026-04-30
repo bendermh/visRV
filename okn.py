@@ -122,13 +122,13 @@ def main(targetSize, vel, direction, totalTime, monitor,
         # Clear screen
         screen.blit(background, (0, 0))
 
-        # Draw bars and optional fixation point
-        bars.draw(vel)
+        # Draw optional fixation point below the moving bars.
         if show_fixation:
             cx, cy = screen.get_width() // 2, screen.get_height() // 2
             pg.draw.circle(screen, fixation_fill, (cx, cy), fixation_radius)
             pg.draw.circle(screen, fixation_outline, (cx, cy),
                            fixation_radius, fixation_outline_w)
+        bars.draw(vel)
 
         pg.display.flip()
 

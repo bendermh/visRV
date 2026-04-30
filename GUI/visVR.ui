@@ -5,7 +5,7 @@
     <customwidgets />
   </project>
   <object class="tk.Toplevel" id="mainWindow" named="True">
-    <property name="geometry">1320x780</property>
+    <property name="geometry">1440x860</property>
     <property name="resizable">none</property>
     <property name="title" translatable="yes">visVR: An instrumented visuo-vestibular and VOR exercises assistant</property>
     <child>
