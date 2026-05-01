@@ -5,7 +5,7 @@
     <customwidgets />
   </project>
   <object class="tk.Toplevel" id="mainWindow" named="True">
-    <property name="geometry">1440x860</property>
+    <property name="geometry">1365x860</property>
     <property name="resizable">none</property>
     <property name="title" translatable="yes">visVR: An instrumented visuo-vestibular and VOR exercises assistant</property>
     <child>
@@ -89,6 +89,7 @@ Rehabilitation</property>
               <object class="ttk.Button" id="scanButton" named="True">
                 <property name="command" type="command" cbtype="simple">scanIMU</property>
                 <property name="text" translatable="yes">PAIR with IMU</property>
+                <property name="width">14</property>
                 <layout manager="pack">
                   <property name="padx">10</property>
                   <property name="pady">10</property>
@@ -102,6 +103,16 @@ Rehabilitation</property>
                 <property name="default">active</property>
                 <property name="takefocus">true</property>
                 <property name="text" translatable="yes">CONNECT IMU</property>
+                <property name="width">14</property>
+                <layout manager="pack">
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="imuDangerSpacer">
+                <property name="height">22</property>
+                <property name="width">1</property>
                 <layout manager="pack">
                   <property name="side">top</property>
                 </layout>
@@ -111,9 +122,45 @@ Rehabilitation</property>
               <object class="ttk.Button" id="button5" named="True">
                 <property name="command" type="command" cbtype="simple">resetIMU</property>
                 <property name="default">active</property>
+                <property name="style">Danger.TButton</property>
                 <property name="text" translatable="yes">Reset IMU</property>
+                <property name="width">14</property>
                 <layout manager="pack">
-                  <property name="pady">30</property>
+                  <property name="pady">2</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Button" id="calibrateButton" named="True">
+                <property name="command" type="command" cbtype="simple">calibrateIMU</property>
+                <property name="style">Danger.TButton</property>
+                <property name="text" translatable="yes">Calibrate IMU</property>
+                <property name="width">14</property>
+                <layout manager="pack">
+                  <property name="pady">2</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Label" id="batteryLabel" named="True">
+                <property name="text" translatable="yes">Battery: --</property>
+                <layout manager="pack">
+                  <property name="pady">8</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Canvas" id="batteryBar" named="True">
+                <property name="background">#d0d0d0</property>
+                <property name="borderwidth">0</property>
+                <property name="height">6</property>
+                <property name="highlightthickness">0</property>
+                <property name="width">100</property>
+                <layout manager="pack">
+                  <property name="pady">0</property>
                   <property name="side">top</property>
                 </layout>
               </object>
@@ -1735,7 +1782,7 @@ direction</property>
                     <property name="values">Default,Easy,Medium,Hard,Very hard</property>
                     <property name="variable">string:templateValue</property>
                     <layout manager="pack">
-                      <property name="ipadx">18</property>
+                      <property name="ipadx">38</property>
                       <property name="side">top</property>
                     </layout>
                   </object>
@@ -1744,7 +1791,7 @@ direction</property>
                   <object class="ttk.Separator" id="separator44">
                     <property name="orient">horizontal</property>
                     <layout manager="pack">
-                      <property name="ipadx">75</property>
+                      <property name="ipadx">95</property>
                       <property name="pady">15</property>
                       <property name="side">bottom</property>
                     </layout>

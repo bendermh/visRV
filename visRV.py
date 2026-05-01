@@ -40,6 +40,7 @@ PROJECT_UI = resource_path(os.path.join("GUI", "visVR.ui"))
 PROJECT_CONFIG = resource_path("config.ini")
 PROJECT_IMU_PIC = resource_path(os.path.join("GUI", "IMU.png"))
 PROJECT_ICON = resource_path("GUI/VR_icon.ico")
+BATTERY_LOW_THRESHOLD = 20
 
 
 class visRV:
@@ -65,6 +66,10 @@ class visRV:
         self.imuCanvas = builder.get_object("imuCanvas")
         self.scanButton = builder.get_object("scanButton")
         self.connectButton = builder.get_object("connectButton")
+        self.resetButton = builder.get_object("button5")
+        self.calibrateButton = builder.get_object("calibrateButton")
+        self.batteryLabel = builder.get_object("batteryLabel")
+        self.batteryBar = builder.get_object("batteryBar")
         self.monitorSelector = builder.get_object("monitorSelector")
         self.startSPButton = builder.get_object("spStartButton")
         self.startSMButton = builder.get_object("smStartButton")
@@ -83,16 +88,11 @@ class visRV:
         self.imuController = None
         self.timeZero = time.time()
         self.timeLastBattery = 0
+        self.lowBatteryWarningShown = False
 
         # Runtime IMU controls
         self.imuControls = self.connectButton.master
-        self.batteryLabel = ttk.Label(self.imuControls, text="Battery: --")
-        self.batteryLabel.pack(side="top", pady=10)
-        self.calibrateButton = ttk.Button(
-            self.imuControls,
-            text="Calibrate IMU",
-            command=self.calibrateIMU)
-        self.calibrateButton.pack(side="top", pady=5)
+        self._setup_imu_styles()
 
         # Load images
         aux = Image.open(PROJECT_IMU_PIC)
@@ -114,16 +114,58 @@ class visRV:
             "connectIMU": self.connectIMU,
             "scanIMU": self.scanIMU,
             "resetIMU": self.resetIMU,
+            "calibrateIMU": self.calibrateIMU,
         }
         builder.connect_callbacks(callbacks)
+        self._set_battery_bar(None)
 
         # Scan for devices
         BleScanner.start()
         time.sleep(2.0)
         BleScanner.stop()
 
-    # (rest of tu clase se queda igual)
-    # ...
+    def _setup_imu_styles(self):
+        style = ttk.Style(self.mainwindow)
+        style.configure("Danger.TButton", foreground="#a3261f")
+        style.map(
+            "Danger.TButton",
+            foreground=[("disabled", "#9a9a9a"), ("active", "#7f1d18")])
+
+    def _set_battery_bar(self, charge):
+        self.batteryBar.delete("all")
+        width = int(self.batteryBar.cget("width"))
+        height = int(self.batteryBar.cget("height"))
+        self.batteryBar.create_rectangle(
+            0, 0, width, height, outline="", fill="#d0d0d0")
+        if charge is None:
+            return
+        charge = max(0, min(100, int(charge)))
+        fill_width = int(width * charge / 100)
+        color = "#b3261e" if charge <= BATTERY_LOW_THRESHOLD else "#2e7d32"
+        if fill_width > 0:
+            self.batteryBar.create_rectangle(
+                0, 0, fill_width, height, outline="", fill=color)
+
+    def _update_battery_display(self):
+        if not self.isIMUConected or self.imuController is None:
+            self.batteryLabel.configure(text="Battery: --")
+            self._set_battery_bar(None)
+            self.lowBatteryWarningShown = False
+            return
+
+        self.batteryLabel.configure(text=self.imuController.battery_text())
+        charge = self.imuController.battery_charge
+        self._set_battery_bar(charge)
+        if charge is None:
+            return
+
+        charge = int(charge)
+        if charge <= BATTERY_LOW_THRESHOLD and not self.lowBatteryWarningShown:
+            self.lowBatteryWarningShown = True
+            messagebox.showwarning(
+                "Low IMU battery",
+                f"IMU battery is at {charge}%. Charge the sensor before "
+                "starting a rehabilitation session.")
 
         
     def guiVariables(self, onlyRead = True):
@@ -406,7 +448,7 @@ class visRV:
                 self.scanButton.state(["disabled"])
                 self.connectButton.state(["disabled"])
                 self.isIMUConected = True
-                self.batteryLabel.configure(text=self.imuController.battery_text())
+                self._update_battery_display()
             else:
                 print("IMU is NOT connected")
                 self.isIMUConected = False
@@ -422,9 +464,11 @@ class visRV:
             return
 
         answer = messagebox.askokcancel(
-            "IMU calibration",
-            "Move the IMU slowly through different orientations until the "
-            "sensor reaches high calibration. Continue?")
+            "IMU calibration warning",
+            "Calibration changes the IMU sensor-fusion reference used by "
+            "VOR exercises. Cancel if a patient session is active or if "
+            "you are not sure the sensor should be recalibrated.\n\n"
+            "Continue with IMU calibration?")
         if not answer:
             return
 
@@ -447,22 +491,25 @@ class visRV:
                 "wider movements.")
     
     def resetIMU(self):
-        answer = messagebox.askokcancel("Be aware","Reset procedure will lost IMU callibration, do not continue if you do not know to callibrate the IMU. Do you want to continue ?")
-        if not answer:
+        if not self.isIMUConected or self.imuController is None:
+            messagebox.showinfo("Warning", "Connect IMU before reset")
             return
         
-        if self.isIMUConected:
-            answer = messagebox.askokcancel("Be aware","Reset procedure will close the program and data will be lost. Do you want to continue ?")
-            if answer:
-                if self.imuController:
-                    self.imuController.factory_reset()
-                self.isIMUConected = False
-                print("IMU reseted, app will close")
-                self.isClosing = True
-                time.sleep(10)
-                self.mainwindow.destroy()
-        else:
-            print("No IMU, no reset, man")
+        answer = messagebox.askokcancel(
+            "Factory reset warning",
+            "Factory reset clears IMU calibration/settings and closes "
+            "visRV. Current session data can be lost.\n\n"
+            "Cancel unless you are sure you want to reset the sensor.\n\n"
+            "Continue with IMU factory reset?")
+        if not answer:
+            return
+
+        self.imuController.factory_reset()
+        self.isIMUConected = False
+        print("IMU reseted, app will close")
+        self.isClosing = True
+        time.sleep(10)
+        self.mainwindow.destroy()
                     
 
     def loopEvents(self):
@@ -472,13 +519,13 @@ class visRV:
         if self.isIMUConected:
             self.imuCanvas.configure(bg='green')
             if self.imuController:
-                self.batteryLabel.configure(text=self.imuController.battery_text())
+                self._update_battery_display()
                 if time.time() - self.timeLastBattery > 60:
                     self.imuController.request_battery()
                     self.timeLastBattery = time.time()
         else:
             self.imuCanvas.configure(bg='red')
-            self.batteryLabel.configure(text="Battery: --")
+            self._update_battery_display()
         try:
             self.mainwindow.after(self.delayEvents, self.loopEvents)
         except tk.TclError:
