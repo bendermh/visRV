@@ -13,7 +13,7 @@ from display_utils import fullscreen_mode
 
 def vp(targetSize="L", imuController=None, vorTrain=False,
        hRange=10, timeStill=0.5, totalTime=120, monitor=0,
-       tolerance=2, direction="out", calibTime=3.0):
+       tolerance=2, direction="out", calibTime=5.0):
     """Entry point for launching VP exercise (horizontal)."""
     if imuController is None or not getattr(imuController, "connected", False):
         print("VP exercise needs an already connected IMU controller")
@@ -85,13 +85,13 @@ class Target():
         if targetH != 90:
             if self.headRangeH > 0:
                 # Right side
-                if direction == "in":
+                if direction == "out":
                     if (self.prev_headPositionH < (targetH - tolerance)) and \
                        (self.headPositionH >= (targetH - tolerance)):
                         self.currentText = random.choice(self.targetList)
                         print("Target:", self.currentText)
                         collision = True
-                else:  # "out"
+                else:  # "in"
                     if (self.prev_headPositionH > (targetH + tolerance)) and \
                        (self.headPositionH <= (targetH + tolerance)):
                         self.currentText = random.choice(self.targetList)
@@ -99,13 +99,13 @@ class Target():
                         collision = True
             elif self.headRangeH < 0:
                 # Left side
-                if direction == "in":
+                if direction == "out":
                     if (self.prev_headPositionH > (targetH + tolerance)) and \
                        (self.headPositionH <= (targetH + tolerance)):
                         self.currentText = random.choice(self.targetList)
                         print("Target:", self.currentText)
                         collision = True
-                else:  # "out"
+                else:  # "in"
                     if (self.prev_headPositionH < (targetH - tolerance)) and \
                        (self.headPositionH >= (targetH - tolerance)):
                         self.currentText = random.choice(self.targetList)
@@ -132,14 +132,18 @@ class Target():
         labelPos.center = self.center
         self.screen.blit(label, labelPos)
 
-    def setBias(self):
+    def setBias(self, duration=0.0):
         """Manual recenter (space key)."""
-        self.imu.set_bias()
+        self.imu.set_bias(duration=duration)
+
+
+INITIAL_BIAS_DURATION = 1.5
+MANUAL_BIAS_DURATION = 0.35
 
 
 def main(targetSize, imuController, vorTrain, hRange, timeStill,
          totalTime, monitor, tolerance=2, direction="out",
-         calibTime=3.0):
+         calibTime=4.0):
     """Main loop for VP exercise."""
     pg.init()
     screen = fullscreen_mode(monitor)
@@ -180,7 +184,7 @@ def main(targetSize, imuController, vorTrain, hRange, timeStill,
                     if event.key == pg.K_ESCAPE:
                         going = False
                     if event.key == pg.K_SPACE:
-                        vpGame.setBias()
+                        vpGame.setBias(duration=MANUAL_BIAS_DURATION)
                     if event.key == pg.K_r:
                         vpGame.headRangeH = -vpGame.headRangeH
                         print(f"Direction reversed: {vpGame.headRangeH}")
@@ -193,7 +197,7 @@ def main(targetSize, imuController, vorTrain, hRange, timeStill,
                                fixation_circle, fixation_radius)
                 screen.blit(text, textRect)
                 if time.time() - calibStart >= calibTime:
-                    vpGame.setBias()
+                    vpGame.setBias(duration=INITIAL_BIAS_DURATION)
                     calibrated = True
             else:
                 # Normal target logic

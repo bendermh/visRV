@@ -16,9 +16,8 @@ import pygubu
 import time
 from mbientlab.metawear import MetaWear,libmetawear
 from mbientlab.metawear.cbindings import *
-from mbientlab.warble import * 
+from mbientlab.warble import *
 import six
-import visRV
 import configparser
 
 
@@ -129,6 +128,8 @@ class deviceSelect:
         else:
             config = configparser.ConfigParser()
             config.read(PROJECT_CONFIG)
+            if not config.has_section("IMU"):
+                config.add_section("IMU")
             config.set("IMU", "mac", self.imuAdr)
             with open(PROJECT_CONFIG, 'w') as f:
                 config.write(f)
@@ -138,8 +139,9 @@ class deviceSelect:
                     self.mainwindow.destroy()
             except tk.TclError:
                 pass
-    
+
             if self.reloadMain:
+                import visRV
                 newMain = visRV.visRV()
                 newMain.run()
 
@@ -165,7 +167,7 @@ class deviceSelect:
             self.textConsole.insert("0.0", device)
             if name == "MetaWear":
                 #self.imuAdr = (address, name)
-                self.enterDev.delete(0)
+                self.enterDev.delete(0, tk.END)
                 self.enterDev.insert(0, i)
                 self.enterDev.update()
             i+= 1

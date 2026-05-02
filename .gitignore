@@ -19,7 +19,13 @@ venv.bak/
 #  build artifacts
 /build/
 /dist/
+/_internal/
+/build_work/
+/build_specs/
+/builds/
 /*.spec
+*.exe
+*.zip
 
 # Installer logs
 pip-log.txt
@@ -48,3 +54,6 @@ Thumbs.db
 *.log
 *.tmp
 .metawear/
+config.ini
+*.csv
+.py312_deps/

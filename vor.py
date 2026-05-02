@@ -8,12 +8,22 @@ Created on Fri Jun  7 10:06:34 2024
 import pygame as pg
 import time
 import random
+import os
 from display_utils import fullscreen_mode
+
+
+HORIZONTAL_SCREEN_RANGE_DEGREES = 45
+VERTICAL_SCREEN_RANGE_DEGREES = 20
+
+
+def debug_enabled():
+    value = os.environ.get("VISRV_VOR_DEBUG", "")
+    return value.strip().lower() in ("1", "true", "yes", "on", "debug")
 
 
 def vor(targetSize="L", imuController=None, vorTrain=True,
         vRange=True, hRange=True, timeChange=1,
-        totalTime=120, monitor=0, calibTime=3.0):
+        totalTime=120, monitor=0, calibTime=5.0):
     """Entry point for launching the VOR/VORS exercise."""
     if imuController is None or not getattr(imuController, "connected", False):
         print("VOR exercise needs an already connected IMU controller")
@@ -35,8 +45,8 @@ class Target():
         self.headPositionV = 90.0
         self.screenPositionH = self.screen.get_width() // 2
         self.screenPositionV = self.screen.get_height() // 2
-        self.headRangeH = 45
-        self.headRangeV = 30
+        self.headRangeH = HORIZONTAL_SCREEN_RANGE_DEGREES
+        self.headRangeV = VERTICAL_SCREEN_RANGE_DEGREES
         self.headRangeHEnable = hRange
         self.headRangeVEnable = vRange
         self.screenMaxH = self.screen.get_width()
@@ -44,6 +54,9 @@ class Target():
         self.center = (self.screen.get_width() // 2, self.screen.get_height() // 2)
         self.x = self.center[0]
         self.y = self.center[1]
+        self.debugLog = debug_enabled()
+        self.debugLogInterval = 0.20
+        self.debugLastLog = 0.0
         # Extended list of letters (avoiding similar ones like O/Q/I/L)
         self.targetList = ["A", "D", "E", "F", "H", "J", "K", "L",
     "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"]
@@ -85,12 +98,15 @@ class Target():
     def changeText(self):
         """Change the current letter of the target."""
         self.currentText = random.choice(self.targetList)
-        print("Target:", self.currentText)
+        if self.debugLog:
+            print("Target:", self.currentText)
 
     def move(self):
         """Update target position from IMU head positions."""
-        self.headPositionH = self.imu.head_position_h
-        self.headPositionV = self.imu.head_position_v
+        rawHeadPositionH = self.imu.head_position_h
+        rawHeadPositionV = self.imu.head_position_v
+        self.headPositionH = rawHeadPositionH
+        self.headPositionV = rawHeadPositionV
 
         self.headPositionH = max(90 - self.headRangeH,
                                  min(self.headPositionH, 90 + self.headRangeH))
@@ -108,10 +124,58 @@ class Target():
 
         self.x = self.screenPositionH
         self.y = self.screenPositionV
+        self.logDebug(rawHeadPositionH, rawHeadPositionV)
 
-    def setBias(self):
+    def setBias(self, duration=0.0):
         """Recenter target position manually."""
-        self.imu.set_bias()
+        self.imu.set_bias(duration=duration)
+
+    def logDebug(self, rawHeadPositionH, rawHeadPositionV):
+        """Print IMU input and screen mapping at a readable cadence."""
+        if not self.debugLog:
+            return
+
+        now = time.time()
+        if now - self.debugLastLog < self.debugLogInterval:
+            return
+        self.debugLastLog = now
+
+        euler = getattr(self.imu, "euler", None)
+        quaternion = getattr(self.imu, "quaternion", None)
+        yaw = getattr(euler, "yaw", None)
+        pitch = getattr(euler, "pitch", None)
+        roll = getattr(euler, "roll", None)
+        print(
+            "VOR_DEBUG "
+            f"qw={self.formatDebug(getattr(quaternion, 'w', None))} "
+            f"qx={self.formatDebug(getattr(quaternion, 'x', None))} "
+            f"qy={self.formatDebug(getattr(quaternion, 'y', None))} "
+            f"qz={self.formatDebug(getattr(quaternion, 'z', None))} "
+            f"yaw={self.formatDebug(yaw)} "
+            f"pitch={self.formatDebug(pitch)} "
+            f"roll={self.formatDebug(roll)} "
+            f"biasH={self.formatDebug(getattr(self.imu, 'bias_h', None))} "
+            f"biasV={self.formatDebug(getattr(self.imu, 'bias_v', None))} "
+            f"horizontalDelta={self.formatDebug(getattr(self.imu, 'horizontal_yaw_delta', None))} "
+            f"verticalDelta={self.formatDebug(getattr(self.imu, 'vertical_delta', None))} "
+            f"tiltDelta={self.formatDebug(getattr(self.imu, 'tilt_delta', None))} "
+            f"rawH={self.formatDebug(rawHeadPositionH)} "
+            f"rawV={self.formatDebug(rawHeadPositionV)} "
+            f"clampH={self.formatDebug(self.headPositionH)} "
+            f"clampV={self.formatDebug(self.headPositionV)} "
+            f"screenH={self.screenPositionH} "
+            f"screenV={self.screenPositionV} "
+            f"hEnabled={self.headRangeHEnable} "
+            f"vEnabled={self.headRangeVEnable} "
+            f"reverse={self.reverse}")
+
+    def formatDebug(self, value):
+        if value is None:
+            return "--"
+        try:
+            return f"{float(value):.2f}"
+        except (TypeError, ValueError):
+            return str(value)
 
     def angleToScreen(self, angle, angleMin, angleMax,
                       screenMin, screenMax, inverse=True):
@@ -122,6 +186,11 @@ class Target():
         else:
             return round(screenMin + (float(angle - angleMin) /
                          float(angleMax - angleMin) * (screenMax - screenMin)))
+
+
+INITIAL_BIAS_DURATION = 1.5
+MANUAL_BIAS_DURATION = 0.35
+
 
 def main(targetSize, imuController, vorTrain, vRange, hRange,
          timeChange, totalTime, monitor, calibTime):
@@ -165,7 +234,7 @@ def main(targetSize, imuController, vorTrain, vRange, hRange,
                 if event.key == pg.K_ESCAPE:
                     going = False
                 if event.key == pg.K_SPACE:
-                    vorGame.setBias()
+                    vorGame.setBias(duration=MANUAL_BIAS_DURATION)
             if event.type == TEXTCHANGE_EVENT:
                 vorGame.changeText()
 
@@ -177,7 +246,7 @@ def main(targetSize, imuController, vorTrain, vRange, hRange,
                            fixation_circle, fixation_radius)
             screen.blit(text, textRect)
             if time.time() - calibStart >= calibTime:
-                vorGame.setBias()
+                vorGame.setBias(duration=INITIAL_BIAS_DURATION)
                 calibrated = True
         else:
             vorGame.move()
