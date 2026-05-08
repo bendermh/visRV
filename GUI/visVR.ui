@@ -78,6 +78,18 @@ Rehabilitation</property>
               <property name="side">left</property>
             </layout>
             <child>
+              <object class="ttk.Label" id="imuPositionHelp" named="True">
+                <property name="cursor">hand2</property>
+                <property name="font">{Courier New} 9 {underline}</property>
+                <property name="foreground">#0000a0</property>
+                <property name="text" translatable="yes">IMU placement</property>
+                <layout manager="pack">
+                  <property name="pady">2</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
               <object class="tk.Canvas" id="imuCanvas" named="True">
                 <property name="borderwidth">2</property>
                 <property name="height">120</property>
@@ -984,8 +996,8 @@ Rehabilitation</property>
               <object class="ttk.Label" id="label43">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Press space to toggle
-fixation point</property>
+                <property name="text" translatable="yes">Space: fixation point
+R: center tilt</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
                   <property name="ipady">2</property>
@@ -1236,8 +1248,7 @@ fixation point</property>
               <object class="ttk.Label" id="label35">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Press space reset IMU
-during exercise</property>
+                <property name="text" translatable="yes">Space: center IMU</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
                   <property name="ipady">2</property>
@@ -1488,8 +1499,7 @@ during exercise</property>
               <object class="ttk.Label" id="label42">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Press space reset IMU
-during exercise</property>
+                <property name="text" translatable="yes">Space: center IMU</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
                   <property name="ipady">2</property>
@@ -1741,10 +1751,8 @@ during exercise</property>
               <object class="ttk.Label" id="label34">
                 <property name="font">{Courier New} 10 {}</property>
                 <property name="foreground">#0000a0</property>
-                <property name="text" translatable="yes">Press space reset IMU
-during exercise
-Press R key to reverse
-direction</property>
+                <property name="text" translatable="yes">Space: center IMU
+R: reverse direction</property>
                 <layout manager="pack">
                   <property name="ipadx">2</property>
                   <property name="ipady">2</property>

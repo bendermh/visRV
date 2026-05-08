@@ -40,7 +40,7 @@ PROJECT_UI = resource_path(os.path.join("GUI", "visVR.ui"))
 PROJECT_CONFIG = resource_path("config.ini")
 PROJECT_IMU_PIC = resource_path(os.path.join("GUI", "IMU.png"))
 PROJECT_ICON = resource_path("GUI/VR_icon.ico")
-BATTERY_LOW_THRESHOLD = 20
+BATTERY_LOW_THRESHOLD = 45
 APP_VERSION = 1.0
 
 
@@ -71,6 +71,7 @@ class visRV:
         self.calibrateButton = builder.get_object("calibrateButton")
         self.batteryLabel = builder.get_object("batteryLabel")
         self.batteryBar = builder.get_object("batteryBar")
+        self.imuPositionHelp = builder.get_object("imuPositionHelp")
         self.monitorSelector = builder.get_object("monitorSelector")
         self.startSPButton = builder.get_object("spStartButton")
         self.startSMButton = builder.get_object("smStartButton")
@@ -103,6 +104,7 @@ class visRV:
         self.imuImg = ImageTk.PhotoImage(aux)
         self.imuCanvas.create_image(4, 4, image=self.imuImg, anchor="nw")
         self.appVersion.configure(text="Ver: " + str(APP_VERSION))
+        self.imuPositionHelp.bind("<Button-1>", self.showIMUPositionHelp)
         self.oknTiltStatus.set(False)
 
         # Set & get GUI variables
@@ -121,6 +123,7 @@ class visRV:
             "scanIMU": self.scanIMU,
             "resetIMU": self.resetIMU,
             "calibrateIMU": self.calibrateIMU,
+            "showIMUPositionHelp": self.showIMUPositionHelp,
         }
         builder.connect_callbacks(callbacks)
         self._set_battery_bar(None)
@@ -173,6 +176,14 @@ class visRV:
                 f"IMU battery is at {charge}%. Charge the sensor before "
                 "starting a rehabilitation session.")
 
+    def showIMUPositionHelp(self, event=None):
+        messagebox.showinfo(
+            "IMU placement",
+            "Place the IMU on the back of the subject's head "
+            "(use an elastic headband).\n\n"
+            "The examiner should stand behind the subject.\n\n"
+            "The IMU button should face the examiner and point downward, "
+            "matching the image shown in the main window.")
 
     def guiVariables(self, onlyRead = True):
         preMonitor = 0
@@ -370,7 +381,14 @@ class visRV:
     def startOK(self):
         self.guiVariables()
         self.mainwindow.withdraw()
-        okn.okn(self.targetSizeOK, self.barSpeedOK,self.directionOK[0], self.timeDurationOK, self.tiltOK, self.monitorSelected)
+        okn.okn(
+            self.targetSizeOK,
+            self.barSpeedOK,
+            self.directionOK[0],
+            self.timeDurationOK,
+            self.tiltOK,
+            self.monitorSelected,
+            imuController=self.imuController)
         self.mainwindow.deiconify()
 
     def startVOR(self):
@@ -576,13 +594,14 @@ class visRV:
 
     def safeIMUDisconnect(self):
         if self.imuController is not None:
+            try:
                 self.imuController.disconnect()
+            finally:
                 self.isIMUConected = False
                 self.imuController = None
                 self.imuDevice = None
-
         else:
-                print("No IMU connection to close")
+            print("No IMU connection to close")
 
     def set_template_values(self, template):
         #  "Default"
@@ -735,7 +754,7 @@ class visRV:
 
     def on_exit(self):
         self.isClosing = True
-        if self.isIMUConected:
+        if self.imuController is not None:
             self.safeIMUDisconnect()
         try:
             if self.mainwindow.winfo_exists():

@@ -9,7 +9,7 @@ from display_utils import fullscreen_mode
 
 
 def okn(targetSize="L", vel=20, direction="D", totalTime=120, tilt=0, monitor=0,
-        fixation_radius=10):
+        fixation_radius=10, imuController=None):
     # Map target size to bar width (border)
     match targetSize:
         case "S":
@@ -28,7 +28,11 @@ def okn(targetSize="L", vel=20, direction="D", totalTime=120, tilt=0, monitor=0,
 
     main(targetSize=ts, vel=vel, direction=direction,
          totalTime=totalTime, tilt=tilt, monitor=monitor,
-         fixation_radius=fixation_radius)
+         fixation_radius=fixation_radius, imuController=imuController)
+
+
+TILT_INITIAL_BIAS_DURATION = 0.4
+TILT_MANUAL_BIAS_DURATION = 0.25
 
 
 class OKNBars:
@@ -77,7 +81,7 @@ class OKNBars:
 
 
 def main(targetSize, vel, direction, totalTime, monitor, tilt,
-         fixation_radius=10):
+         fixation_radius=10, imuController=None):
     pg.init()
     screen = fullscreen_mode(monitor)
     fps = 60
@@ -87,8 +91,31 @@ def main(targetSize, vel, direction, totalTime, monitor, tilt,
     background = pg.Surface(screen.get_size()).convert()
     background.fill((0, 0, 0))
 
+    tilt_enabled = bool(tilt)
+    tilt_active = (
+        tilt_enabled and
+        imuController is not None and
+        getattr(imuController, "connected", False)
+    )
+
+    if tilt_active:
+        print("Tilt on")
+        imuController.set_bias(duration=TILT_INITIAL_BIAS_DURATION)
+        w, h = screen.get_width(), screen.get_height()
+        pattern_size = int((w * w + h * h) ** 0.5) + targetSize * 2
+        pattern_surface = pg.Surface(
+            (pattern_size, pattern_size), pg.SRCALPHA).convert_alpha()
+        bars_surface = pattern_surface
+    else:
+        if tilt_enabled:
+            print("Tilt disabled, no IMU")
+        else:
+            print("Tilt off")
+        pattern_surface = None
+        bars_surface = screen
+
     # Prepare OKN bars
-    bars = OKNBars(screen, border=targetSize, direction=direction)
+    bars = OKNBars(bars_surface, border=targetSize, direction=direction)
 
     # Timing / control
     EXIT_EVENT = pg.USEREVENT + 1
@@ -118,6 +145,9 @@ def main(targetSize, vel, direction, totalTime, monitor, tilt,
                         print("Fixation point ON")
                     else:
                         print("Fixation point OFF")
+                elif event.key == pg.K_r and tilt_active:
+                    imuController.set_bias(duration=TILT_MANUAL_BIAS_DURATION)
+                    print("Tilt centered")
 
         # Clear screen
         screen.blit(background, (0, 0))
@@ -128,7 +158,16 @@ def main(targetSize, vel, direction, totalTime, monitor, tilt,
             pg.draw.circle(screen, fixation_fill, (cx, cy), fixation_radius)
             pg.draw.circle(screen, fixation_outline, (cx, cy),
                            fixation_radius, fixation_outline_w)
-        bars.draw(vel)
+
+        if tilt_active:
+            pattern_surface.fill((0, 0, 0, 0))
+            bars.draw(vel)
+            angle = getattr(imuController, "head_position_tilt", 90.0) - 90.0
+            rotated = pg.transform.rotate(pattern_surface, -angle)
+            rotated_rect = rotated.get_rect(center=screen.get_rect().center)
+            screen.blit(rotated, rotated_rect)
+        else:
+            bars.draw(vel)
 
         pg.display.flip()
 
