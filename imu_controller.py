@@ -69,8 +69,8 @@ class IMUController:
         self.tilt_delta = 0.0
 
         self.horizontal_motion_gain = 1.0
-        self.vertical_motion_gain = 1.5
-        self.tilt_motion_gain = 1.5
+        self.vertical_motion_gain = 1.3
+        self.tilt_motion_gain = 1.3
 
         self.head_position_h = 90.0
         self.head_position_v = 90.0

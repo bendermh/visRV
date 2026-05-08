@@ -98,8 +98,7 @@ class Target():
     def changeText(self):
         """Change the current letter of the target."""
         self.currentText = random.choice(self.targetList)
-        if self.debugLog:
-            print("Target:", self.currentText)
+        print("Target:", self.currentText)
 
     def move(self):
         """Update target position from IMU head positions."""

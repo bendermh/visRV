@@ -8,7 +8,7 @@ import pygame as pg
 from display_utils import fullscreen_mode
 
 
-def okn(targetSize="L", vel=20, direction="D", totalTime=120, monitor=0,
+def okn(targetSize="L", vel=20, direction="D", totalTime=120, tilt=0, monitor=0,
         fixation_radius=10):
     # Map target size to bar width (border)
     match targetSize:
@@ -27,7 +27,7 @@ def okn(targetSize="L", vel=20, direction="D", totalTime=120, monitor=0,
         print("Velocity reset to:", vel)
 
     main(targetSize=ts, vel=vel, direction=direction,
-         totalTime=totalTime, monitor=monitor,
+         totalTime=totalTime, tilt=tilt, monitor=monitor,
          fixation_radius=fixation_radius)
 
 
@@ -76,7 +76,7 @@ class OKNBars:
                 y += self.step
 
 
-def main(targetSize, vel, direction, totalTime, monitor,
+def main(targetSize, vel, direction, totalTime, monitor, tilt,
          fixation_radius=10):
     pg.init()
     screen = fullscreen_mode(monitor)

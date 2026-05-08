@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<interface version="1.4" author="PygubuDesigner 0.41.4">
+<interface version="1.5" author="PygubuDesigner 0.41.4">
   <project>
     <settings />
     <customwidgets />
+    <resources />
   </project>
   <object class="tk.Toplevel" id="mainWindow" named="True">
     <property name="geometry">1365x860</property>
@@ -35,15 +36,37 @@ Rehabilitation</property>
               </object>
             </child>
             <child>
-              <object class="ttk.Label" id="label15">
-                <property name="font">{Corbel} 24 {italic}</property>
-                <property name="foreground">#005b2e</property>
-                <property name="justify">center</property>
-                <property name="text" translatable="yes">by SONA research</property>
+              <object class="ttk.Frame" id="frame12">
+                <property name="height">200</property>
+                <property name="width">200</property>
                 <layout manager="pack">
-                  <property name="padx">30</property>
-                  <property name="side">bottom</property>
+                  <property name="side">top</property>
                 </layout>
+                <child>
+                  <object class="ttk.Label" id="label15">
+                    <property name="font">{Corbel} 20 {italic}</property>
+                    <property name="foreground">#005b2e</property>
+                    <property name="justify">center</property>
+                    <property name="text" translatable="yes">by SONA research</property>
+                    <layout manager="pack">
+                      <property name="padx">30</property>
+                      <property name="side">left</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Label" id="version_n" named="True">
+                    <property name="font">{Courier} 12 {}</property>
+                    <property name="foreground">#0000a0</property>
+                    <property name="justify">left</property>
+                    <property name="text" translatable="yes">Ver. X.X.X</property>
+                    <layout manager="pack">
+                      <property name="padx">50</property>
+                      <property name="pady">20</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -86,6 +109,28 @@ Rehabilitation</property>
               <property name="side">right</property>
             </layout>
             <child>
+              <object class="ttk.Button" id="connectButton" named="True">
+                <property name="command" type="command" cbtype="simple">connectIMU</property>
+                <property name="default">active</property>
+                <property name="takefocus">true</property>
+                <property name="text" translatable="yes">CONNECT IMU</property>
+                <property name="width">14</property>
+                <layout manager="pack">
+                  <property name="pady">10</property>
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Frame" id="imuDangerSpacer">
+                <property name="height">18</property>
+                <property name="width">1</property>
+                <layout manager="pack">
+                  <property name="side">top</property>
+                </layout>
+              </object>
+            </child>
+            <child>
               <object class="ttk.Button" id="scanButton" named="True">
                 <property name="command" type="command" cbtype="simple">scanIMU</property>
                 <property name="text" translatable="yes">PAIR with IMU</property>
@@ -98,22 +143,14 @@ Rehabilitation</property>
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="connectButton" named="True">
-                <property name="command" type="command" cbtype="simple">connectIMU</property>
-                <property name="default">active</property>
-                <property name="takefocus">true</property>
-                <property name="text" translatable="yes">CONNECT IMU</property>
+              <object class="ttk.Button" id="calibrateButton" named="True">
+                <property name="command" type="command" cbtype="simple">calibrateIMU</property>
+                <property name="style">Danger.TButton</property>
+                <property name="text" translatable="yes">Calibrate IMU</property>
                 <property name="width">14</property>
                 <layout manager="pack">
-                  <property name="side">top</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="ttk.Frame" id="imuDangerSpacer">
-                <property name="height">22</property>
-                <property name="width">1</property>
-                <layout manager="pack">
+                  <property name="padx">10</property>
+                  <property name="pady">10</property>
                   <property name="side">top</property>
                 </layout>
               </object>
@@ -126,19 +163,8 @@ Rehabilitation</property>
                 <property name="text" translatable="yes">Reset IMU</property>
                 <property name="width">14</property>
                 <layout manager="pack">
-                  <property name="pady">2</property>
-                  <property name="side">top</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="ttk.Button" id="calibrateButton" named="True">
-                <property name="command" type="command" cbtype="simple">calibrateIMU</property>
-                <property name="style">Danger.TButton</property>
-                <property name="text" translatable="yes">Calibrate IMU</property>
-                <property name="width">14</property>
-                <layout manager="pack">
-                  <property name="pady">2</property>
+                  <property name="padx">10</property>
+                  <property name="pady">10</property>
                   <property name="side">top</property>
                 </layout>
               </object>
@@ -916,18 +942,9 @@ Rehabilitation</property>
                 <child>
                   <object class="ttk.Label" id="label21">
                     <property name="font">{courier new} 12 {}</property>
-                    <property name="text" translatable="yes">Nothing</property>
+                    <property name="text" translatable="yes">Tilt</property>
                     <layout manager="pack">
                       <property name="pady">5</property>
-                      <property name="side">top</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="ttk.Combobox" id="combobox12">
-                    <property name="state">disabled</property>
-                    <property name="values">0 400 800 1080</property>
-                    <layout manager="pack">
                       <property name="side">top</property>
                     </layout>
                   </object>
@@ -939,6 +956,15 @@ Rehabilitation</property>
                       <property name="ipadx">75</property>
                       <property name="pady">15</property>
                       <property name="side">bottom</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Checkbutton" id="OKN_tilt" named="True">
+                    <property name="text" translatable="yes">Enable</property>
+                    <property name="variable">boolean:okTiltStatus</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
                     </layout>
                   </object>
                 </child>

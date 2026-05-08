@@ -41,6 +41,7 @@ PROJECT_CONFIG = resource_path("config.ini")
 PROJECT_IMU_PIC = resource_path(os.path.join("GUI", "IMU.png"))
 PROJECT_ICON = resource_path("GUI/VR_icon.ico")
 BATTERY_LOW_THRESHOLD = 20
+APP_VERSION = 1.0
 
 
 class visRV:
@@ -77,6 +78,9 @@ class visRV:
         self.startVORButton = builder.get_object("vorStartButton")
         self.startVORSButton = builder.get_object("vorsStartButton")
         self.startVPButton = builder.get_object("vpStartButton")
+        self.oknTiltButton = builder.get_object("OKN_tilt")
+        self.oknTiltStatus = builder.get_variable("okTiltStatus")
+        self.appVersion = builder.get_object("version_n")
 
         # Other variables
         self.imuMac = ""
@@ -98,6 +102,8 @@ class visRV:
         aux = Image.open(PROJECT_IMU_PIC)
         self.imuImg = ImageTk.PhotoImage(aux)
         self.imuCanvas.create_image(4, 4, image=self.imuImg, anchor="nw")
+        self.appVersion.configure(text="Ver: " + str(APP_VERSION))
+        self.oknTiltStatus.set(False)
 
         # Set & get GUI variables
         self.refreshMonitorSelector()
@@ -277,6 +283,7 @@ class visRV:
         self.timeDurationOK = self.builder.get_variable("timeDurationOK").get()
         self.barSpeedOK = self.builder.get_variable("barSpeedOK").get()
         self.directionOK = self.builder.get_variable("directionOK").get()
+        self.tiltOK = self.oknTiltStatus.get()
 
         self.timeDurationVOR = self.builder.get_variable("timeDurationVOR").get()
         self.horizontalRangeVOR = self.builder.get_variable("horizontalRangeVOR").get()
@@ -363,7 +370,7 @@ class visRV:
     def startOK(self):
         self.guiVariables()
         self.mainwindow.withdraw()
-        okn.okn(self.targetSizeOK, self.barSpeedOK,self.directionOK[0], self.timeDurationOK, self.monitorSelected)
+        okn.okn(self.targetSizeOK, self.barSpeedOK,self.directionOK[0], self.timeDurationOK, self.tiltOK, self.monitorSelected)
         self.mainwindow.deiconify()
 
     def startVOR(self):
